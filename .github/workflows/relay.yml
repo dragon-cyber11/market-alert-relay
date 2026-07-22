@@ -1,0 +1,58 @@
+name: Slack to Telegram Relay
+
+on:
+  schedule:
+    - cron: '10 8 * * 1-5'   # 평일 08:10 UTC = 한국시간 17:10
+  workflow_dispatch: {}      # Actions 탭에서 수동 실행도 가능
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch latest Slack message
+        id: slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: C0BK4EUF1C4
+        run: |
+          set -e
+          RESPONSE=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            "https://slack.com/api/conversations.history?channel=$SLACK_CHANNEL_ID&limit=1")
+
+          OK=$(echo "$RESPONSE" | jq -r '.ok')
+          if [ "$OK" != "true" ]; then
+            echo "Slack API 오류:"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          TEXT=$(echo "$RESPONSE" | jq -r '.messages[0].text')
+          if [ -z "$TEXT" ] || [ "$TEXT" == "null" ]; then
+            echo "가져올 메시지가 없습니다."
+            exit 1
+          fi
+
+          printf '%s' "$TEXT" > message.txt
+          echo "---- 가져온 메시지 ----"
+          cat message.txt
+
+      - name: Send to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: "@haesunking"
+        run: |
+          set -e
+          TEXT=$(cat message.txt)
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            --data-urlencode text="${TEXT}" \
+            -o telegram_response.json
+
+          echo "---- 텔레그램 응답 ----"
+          cat telegram_response.json
+
+          OK=$(cat telegram_response.json | jq -r '.ok')
+          if [ "$OK" != "true" ]; then
+            echo "텔레그램 전송 실패"
+            exit 1
+          fi
