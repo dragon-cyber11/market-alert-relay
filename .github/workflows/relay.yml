@@ -66,8 +66,8 @@ jobs:
 
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
-          # 슬랙 앱 전송 꼬리표 문구 줄 제거 (예: "*다음을 사용하여 보냄* Claude")
-          TEXT=$(echo "$TEXT" | sed '/다음을 사용하여 보냄/d')
+          # 슬랙 앱 전송 꼬리표 문구만 제거 (해당 줄 전체가 아니라 그 문구부터 끝까지만 지움)
+          TEXT=$(echo "$TEXT" | sed -E 's/\*다음을 사용하여 보냄\*.*$//')
 
           # 슬랙의 국기 이모지 콜론 코드 -> 실제 유니코드 이모지로 변환
           TEXT=$(echo "$TEXT" | sed \
