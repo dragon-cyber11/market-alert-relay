@@ -1,6 +1,6 @@
 # 저장 위치: 저장소 안에 .github/workflows/relay.yml 로 커밋해야 GitHub Actions가 인식합니다.
 #
-# 하는 일: 매시간 정각에
+# 하는 일: 매시간 15분에
 #   1) 슬랙 #일반 채널의 가장 최근 메시지를 확인
 #   2) 그 메시지를 이미 텔레그램으로 보낸 적 있으면(직전과 동일하면) 아무것도 안 하고 종료
 #   3) 새로운 메시지면 국기 이모지 코드(:us: 등) 변환 + 슬랙 앱 꼬리표 문구 제거 후 텔레그램으로 전달
@@ -14,8 +14,8 @@ name: Slack to Telegram Relay
 
 on:
   schedule:
-    - cron: '0 * * * *'   # 매시간 정각 (하루 24번 체크, 새 내용 있을 때만 전송)
-  workflow_dispatch: {}   # Actions 탭에서 수동 실행도 가능
+    - cron: '15 * * * *'   # 매시간 15분 (정각은 GitHub 트래픽이 몰려 지연/스킵되기 쉬워서 회피)
+  workflow_dispatch: {}    # Actions 탭에서 수동 실행도 가능
 
 permissions:
   contents: write   # 마지막으로 보낸 메시지 기록을 저장소에 커밋하기 위해 필요
