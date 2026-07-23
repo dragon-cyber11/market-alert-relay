@@ -17,7 +17,7 @@ name: Slack to Telegram Relay
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # 5분마다 (Public 저장소라 무료 실행 시간 걱정 없음)
+    - cron: '*/6 * * * *'   # 5분마다 (Public 저장소라 무료 실행 시간 걱정 없음)
   workflow_dispatch: {}     # Actions 탭에서 수동 실행도 가능
 
 permissions:
