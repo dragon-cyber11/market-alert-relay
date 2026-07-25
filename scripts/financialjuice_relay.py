@@ -14,7 +14,6 @@ HEARTBEAT_FILE = os.path.join(STATE_DIR, "fj_heartbeat.txt")
 
 
 def translate_to_ko(text):
-    """무료 MyMemory API로 영어 -> 한국어 번역. 실패하면 None을 반환(원문만 전송)."""
     try:
         params = urllib.parse.urlencode({"q": text, "langpair": "en|ko"})
         url = "https://api.mymemory.translated.net/get?%s" % params
@@ -51,7 +50,7 @@ def main():
             continue
         items.append((epoch, title, link))
 
-    items.sort(key=lambda x: x[0])  # 오래된 순 -> 최신 순
+    items.sort(key=lambda x: x[0])
 
     latest_epoch = items[-1][0] if items else 0
 
@@ -72,7 +71,7 @@ def main():
         last_epoch = int(content) if content else 0
 
     new_items = [it for it in items if it[0] > last_epoch]
-    new_items = new_items[-15:]  # 한 번에 최대 15건까지만
+    new_items = new_items[-15:]
 
     if not new_items:
         print("새 속보 없음")
@@ -86,9 +85,9 @@ def main():
         translated = translate_to_ko(clean_title)
 
         if translated and translated.lower() != clean_title.lower():
-            msg = "\U0001F6A8 속보\n%s\n(EN: %s)\n%s" % (translated, clean_title, link)
+            msg = "\U0001F6A8 속보\n%s\n(EN: %s)" % (translated, clean_title)
         else:
-            msg = "\U0001F6A8 속보\n%s\n%s" % (clean_title, link)
+            msg = "\U0001F6A8 속보\n%s" % clean_title
 
         body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
         req2 = urllib.request.Request(
