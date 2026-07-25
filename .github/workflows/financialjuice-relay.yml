@@ -1,12 +1,15 @@
 # 저장 위치: 저장소에 파일 두 개를 추가해야 합니다.
 #   1) .github/workflows/financialjuice-relay.yml  (이 파일)
-#   2) scripts/financialjuice_relay.py              (아까 드린 파이썬 파일, 경로 그대로 scripts 폴더 아래)
+#   2) scripts/financialjuice_relay.py              (같이 드린 파이썬 파일, 경로 그대로 scripts 폴더 아래)
 #
-# 하는 일: 5분마다
-#   1) financialjuice.com의 공개 RSS 피드(https://www.financialjuice.com/feed.ashx?xy=rss)를 확인
-#   2) 저장소에 기록해둔 "마지막으로 보낸 시각"보다 새로운 기사가 있으면 새 속보로 판단
-#   3) 새 속보마다 제목("FinancialJuice: " 접두어는 제거) + 링크를 텔레그램(@haesunking)으로 전송
-#   4) 마지막 전송 시각 + 실행 시각(하트비트)을 저장소에 기록해서 다음 실행 때 중복 방지 및 실행 확인
+# 하는 일:
+#   - 잡(job)이 시작되면 약 5시간 50분 동안 "30초마다 새 속보 확인 -> 있으면 텔레그램 전송"을
+#     계속 반복하는 방식으로 동작 (5분 대기하는 방식보다 훨씬 촘촘함)
+#   - GitHub Actions는 잡 하나를 무한정 돌릴 수는 없어서(호스팅 러너 최대 6시간),
+#     6시간마다 예약(cron)이 새 잡을 띄워서 이어받는 구조. 겹치는 순간에는 concurrency 설정으로
+#     이전 잡이 끝날 때까지 잠깐 대기했다가 바로 이어서 시작함 (거의 끊김 없이 계속 돔)
+#   - 진행 중 상태(마지막으로 보낸 시각)는 5분에 한 번씩 저장소에 커밋해서, 잡이 도중에
+#     죽어도 최근 상태를 잃지 않게 함
 #
 # 참고: 이 워크플로를 처음 추가하고 실행하면 "초기화"만 하고 아무것도 보내지 않습니다.
 #
@@ -17,7 +20,7 @@ name: FinancialJuice RSS to Telegram
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # 5분마다
+    - cron: '0 */6 * * *'   # 6시간마다 새 잡을 띄워서 이어받음 (겹치면 대기)
   workflow_dispatch: {}
 
 permissions:
@@ -30,25 +33,56 @@ concurrency:
 jobs:
   relay:
     runs-on: ubuntu-latest
+    timeout-minutes: 355
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check feed and send new items to Telegram
+      - name: Poll feed continuously and send new items to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           mkdir -p .state
-          python3 scripts/financialjuice_relay.py
+          git config user.name "relay-bot"
+          git config user.email "relay-bot@users.noreply.github.com"
 
-      - name: Save state
+          END=$(( $(date +%s) + 5*3600 + 50*60 ))   # 약 5시간 50분 동안 반복
+          CYCLE=0
+
+          while [ "$(date +%s)" -lt "$END" ]; do
+            python3 scripts/financialjuice_relay.py || echo "이번 주기 오류 발생, 다음 주기에 계속 진행"
+
+            CYCLE=$((CYCLE + 1))
+
+            # 10주기(약 5분)마다 상태를 저장소에 커밋 (매 주기마다 커밋하면 너무 잦음)
+            if [ $((CYCLE % 10)) -eq 0 ]; then
+              git add .state/fj_last_epoch.txt .state/fj_heartbeat.txt 2>/dev/null || true
+              if ! git diff --cached --quiet; then
+                git commit -q -m "financialjuice heartbeat + state update"
+                for i in 1 2 3; do
+                  if git push -q; then
+                    break
+                  fi
+                  git fetch origin main -q
+                  git rebase origin/main -q || git rebase --abort
+                  sleep 2
+                done
+              fi
+            fi
+
+            sleep 30
+          done
+
+          echo "이번 잡의 실행 시간 한도(약 5시간 50분)에 도달, 종료 (다음 예약 잡이 바로 이어받음)"
+
+      - name: Save state (final)
         if: always()
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
           [ -f .state/fj_last_epoch.txt ] && git add .state/fj_last_epoch.txt
           [ -f .state/fj_heartbeat.txt ] && git add .state/fj_heartbeat.txt
-          git commit -m "financialjuice heartbeat + state update" || echo "커밋할 변경사항 없음"
+          git commit -m "financialjuice heartbeat + state update (final)" || echo "커밋할 변경사항 없음"
 
           for i in 1 2 3 4 5; do
             if git push; then
