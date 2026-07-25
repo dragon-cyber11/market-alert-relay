@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import time
@@ -10,6 +11,22 @@ FEED_URL = "https://www.financialjuice.com/feed.ashx?xy=rss"
 STATE_DIR = ".state"
 LAST_FILE = os.path.join(STATE_DIR, "fj_last_epoch.txt")
 HEARTBEAT_FILE = os.path.join(STATE_DIR, "fj_heartbeat.txt")
+
+
+def translate_to_ko(text):
+    """무료 MyMemory API로 영어 -> 한국어 번역. 실패하면 None을 반환(원문만 전송)."""
+    try:
+        params = urllib.parse.urlencode({"q": text, "langpair": "en|ko"})
+        url = "https://api.mymemory.translated.net/get?%s" % params
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+        translated = data.get("responseData", {}).get("translatedText")
+        if translated and not translated.strip().startswith("QUERY LENGTH"):
+            return translated.strip()
+    except Exception as e:
+        print("번역 실패:", e)
+    return None
 
 
 def main():
@@ -66,7 +83,13 @@ def main():
 
     for epoch, title, link in new_items:
         clean_title = re.sub(r"^FinancialJuice:\s*", "", title)
-        msg = "\U0001F6A8 속보\n%s\n%s" % (clean_title, link)
+        translated = translate_to_ko(clean_title)
+
+        if translated and translated.lower() != clean_title.lower():
+            msg = "\U0001F6A8 속보\n%s\n(EN: %s)\n%s" % (translated, clean_title, link)
+        else:
+            msg = "\U0001F6A8 속보\n%s\n%s" % (clean_title, link)
+
         body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
         req2 = urllib.request.Request(
             "https://api.telegram.org/bot%s/sendMessage" % bot_token,
