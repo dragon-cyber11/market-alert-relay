@@ -11,9 +11,37 @@ FEED_URL = "https://www.financialjuice.com/feed.ashx?xy=rss"
 STATE_DIR = ".state"
 LAST_FILE = os.path.join(STATE_DIR, "fj_last_epoch.txt")
 HEARTBEAT_FILE = os.path.join(STATE_DIR, "fj_heartbeat.txt")
+SENT_TITLES_FILE = os.path.join(STATE_DIR, "fj_sent_titles.json")
+SENT_TITLES_TTL_SECONDS = 24 * 3600  # 같은 제목은 24시간 안에는 다시 안 보냄
+SENT_TITLES_MAX = 500  # 상태 파일이 무한정 커지지 않도록 최대 개수 제한
+
+
+def normalize_title(text):
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def load_sent_titles():
+    if not os.path.exists(SENT_TITLES_FILE):
+        return {}
+    try:
+        with open(SENT_TITLES_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_sent_titles(sent_titles, now_epoch):
+    pruned = {
+        t: e for t, e in sent_titles.items() if now_epoch - e < SENT_TITLES_TTL_SECONDS
+    }
+    if len(pruned) > SENT_TITLES_MAX:
+        pruned = dict(sorted(pruned.items(), key=lambda kv: kv[1], reverse=True)[:SENT_TITLES_MAX])
+    with open(SENT_TITLES_FILE, "w") as f:
+        json.dump(pruned, f)
 
 
 def translate_to_ko(text):
+    """무료 MyMemory API로 영어 -> 한국어 번역. 실패하면 None을 반환(원문만 전송)."""
     try:
         params = urllib.parse.urlencode({"q": text, "langpair": "en|ko"})
         url = "https://api.mymemory.translated.net/get?%s" % params
@@ -70,21 +98,44 @@ def main():
         content = f.read().strip()
         last_epoch = int(content) if content else 0
 
-    new_items = [it for it in items if it[0] > last_epoch]
-    new_items = new_items[-15:]
+    candidate_items = [it for it in items if it[0] > last_epoch]
+    candidate_items = candidate_items[-30:]
 
-    if not new_items:
+    new_last = max(last_epoch, latest_epoch)
+
+    if not candidate_items:
         print("새 속보 없음")
+        with open(LAST_FILE, "w") as f:
+            f.write(str(new_last))
+        return
+
+    sent_titles = load_sent_titles()
+
+    to_send = []
+    for epoch, title, link in candidate_items:
+        clean_title = re.sub(r"^FinancialJuice:\s*", "", title)
+        key = normalize_title(clean_title)
+        if key in sent_titles:
+            continue
+        to_send.append((epoch, clean_title))
+        sent_titles[key] = epoch
+
+    to_send = to_send[-15:]
+
+    if not to_send:
+        print("새 속보 없음 (전부 이미 보낸 제목)")
+        save_sent_titles(sent_titles, latest_epoch)
+        with open(LAST_FILE, "w") as f:
+            f.write(str(new_last))
         return
 
     bot_token = os.environ["TELEGRAM_BOT_TOKEN"]
     chat_id = "@haesunking"
 
-    for epoch, title, link in new_items:
-        clean_title = re.sub(r"^FinancialJuice:\s*", "", title)
+    for epoch, clean_title in to_send:
         translated = translate_to_ko(clean_title)
 
-        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))  # 한국시간(UTC+9)
+        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))
 
         if translated and translated.lower() != clean_title.lower():
             msg = "\U0001F6A8 속보 (%s)\n%s\n(EN: %s)" % (kst_time, translated, clean_title)
@@ -103,11 +154,11 @@ def main():
             print("전송 실패 (%s):" % epoch, e)
         time.sleep(1)
 
-    new_last = max(last_epoch, latest_epoch)
+    save_sent_titles(sent_titles, latest_epoch)
     with open(LAST_FILE, "w") as f:
         f.write(str(new_last))
 
-    print("새 속보 %s건 전송 완료, 기준 시각 갱신: %s" % (len(new_items), new_last))
+    print("새 속보 %s건 전송 완료, 기준 시각 갱신: %s" % (len(to_send), new_last))
 
 
 if __name__ == "__main__":
