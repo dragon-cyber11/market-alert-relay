@@ -1,0 +1,61 @@
+# 저장 위치: 저장소에 파일 두 개를 추가해야 합니다.
+#   1) .github/workflows/financialjuice-relay.yml  (이 파일)
+#   2) scripts/financialjuice_relay.py              (아까 드린 파이썬 파일, 경로 그대로 scripts 폴더 아래)
+#
+# 하는 일: 5분마다
+#   1) financialjuice.com의 공개 RSS 피드(https://www.financialjuice.com/feed.ashx?xy=rss)를 확인
+#   2) 저장소에 기록해둔 "마지막으로 보낸 시각"보다 새로운 기사가 있으면 새 속보로 판단
+#   3) 새 속보마다 제목("FinancialJuice: " 접두어는 제거) + 링크를 텔레그램(@haesunking)으로 전송
+#   4) 마지막 전송 시각 + 실행 시각(하트비트)을 저장소에 기록해서 다음 실행 때 중복 방지 및 실행 확인
+#
+# 참고: 이 워크플로를 처음 추가하고 실행하면 "초기화"만 하고 아무것도 보내지 않습니다.
+#
+# 필요한 저장소 secret (이미 있음, 추가 설정 불필요):
+#   - TELEGRAM_BOT_TOKEN
+
+name: FinancialJuice RSS to Telegram
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # 5분마다
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: financialjuice-relay
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check feed and send new items to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          mkdir -p .state
+          python3 scripts/financialjuice_relay.py
+
+      - name: Save state
+        if: always()
+        run: |
+          git config user.name "relay-bot"
+          git config user.email "relay-bot@users.noreply.github.com"
+          [ -f .state/fj_last_epoch.txt ] && git add .state/fj_last_epoch.txt
+          [ -f .state/fj_heartbeat.txt ] && git add .state/fj_heartbeat.txt
+          git commit -m "financialjuice heartbeat + state update" || echo "커밋할 변경사항 없음"
+
+          for i in 1 2 3 4 5; do
+            if git push; then
+              break
+            fi
+            echo "push 실패, 원격 변경사항 반영 후 재시도 ($i)"
+            git fetch origin main
+            git rebase origin/main || git rebase --abort
+            sleep 2
+          done
