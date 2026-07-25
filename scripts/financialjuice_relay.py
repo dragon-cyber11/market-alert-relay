@@ -12,8 +12,8 @@ STATE_DIR = ".state"
 LAST_FILE = os.path.join(STATE_DIR, "fj_last_epoch.txt")
 HEARTBEAT_FILE = os.path.join(STATE_DIR, "fj_heartbeat.txt")
 SENT_TITLES_FILE = os.path.join(STATE_DIR, "fj_sent_titles.json")
-SENT_TITLES_TTL_SECONDS = 24 * 3600  # 같은 제목은 24시간 안에는 다시 안 보냄
-SENT_TITLES_MAX = 500  # 상태 파일이 무한정 커지지 않도록 최대 개수 제한
+SENT_TITLES_TTL_SECONDS = 24 * 3600
+SENT_TITLES_MAX = 500
 
 
 def normalize_title(text):
@@ -135,12 +135,12 @@ def main():
     for epoch, clean_title in to_send:
         translated = translate_to_ko(clean_title)
 
-        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))
+        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))  # 한국시간(UTC+9)
 
         if translated and translated.lower() != clean_title.lower():
-            msg = "\U0001F6A8 속보 (%s)\n%s\n(EN: %s)" % (kst_time, translated, clean_title)
+            msg = "\U0001F6A8 %s\n(EN: %s)\n(%s)" % (translated, clean_title, kst_time)
         else:
-            msg = "\U0001F6A8 속보 (%s)\n%s" % (kst_time, clean_title)
+            msg = "\U0001F6A8 %s\n(%s)" % (clean_title, kst_time)
 
         body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
         req2 = urllib.request.Request(
