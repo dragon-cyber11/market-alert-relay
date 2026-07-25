@@ -1,1 +1,117 @@
+# 저장 위치: 저장소의 .github/workflows/yasun-news-relay.yml 로 커밋
+#
+# 하는 일: 6분마다
+#   1) https://yasun.gg/news 에서 속보 목록의 고유 번호(ID)들을 확인
+#   2) 저장소에 기록해둔 "마지막으로 보낸 번호"보다 큰 새 번호가 있으면 새 속보로 판단
+#   3) 새 속보마다 https://yasun.gg/news/{ID} 페이지에서 제목을 뽑아 텔레그램(@haesunking)으로 전송
+#   4) 마지막으로 보낸 번호를 저장소에 기록해서 다음 실행 때 중복 방지
+#
+# 참고: 이 워크플로를 처음 추가하고 실행하면 "초기화"만 하고 아무것도 보내지 않습니다.
+#      (지금까지 쌓인 옛날 속보를 한꺼번에 쏟아붓지 않기 위함) 그 다음 실행부터 새 속보만 전송됩니다.
+#
+# 필요한 저장소 secret (이미 있음, 추가 설정 불필요):
+#   - TELEGRAM_BOT_TOKEN
 
+name: Yasun.gg News to Telegram
+
+on:
+  schedule:
+    - cron: '*/6 * * * *'   # 6분마다
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for new articles
+        id: check
+        run: |
+          set -e
+          HTML=$(curl -s "https://yasun.gg/news")
+
+          IDS=$(echo "$HTML" | grep -oE 'news/[0-9]+' | grep -oE '[0-9]+' | sort -nu)
+          LATEST=$(echo "$IDS" | tail -1)
+
+          if [ -z "$LATEST" ]; then
+            echo "속보 ID를 찾지 못했습니다. 사이트 구조가 바뀌었을 수 있습니다."
+            echo "new_ids=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mkdir -p .state
+
+          if [ ! -f .state/last_news_id.txt ]; then
+            echo "$LATEST" > .state/last_news_id.txt
+            echo "초기화: 기준 ID $LATEST 저장 (이번 실행은 발송 안 함)"
+            echo "new_ids=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LAST=$(cat .state/last_news_id.txt)
+          NEW_IDS=$(echo "$IDS" | awk -v last="$LAST" '$1 > last' | sort -n | tail -15 | tr '\n' ',')
+
+          if [ -z "$NEW_IDS" ]; then
+            echo "새 속보 없음"
+            echo "new_ids=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "새 속보 ID: $NEW_IDS"
+          echo "new_ids=$NEW_IDS" >> "$GITHUB_OUTPUT"
+          echo "$LATEST" > .state/pending_last_id.txt
+
+      - name: Send new articles to Telegram
+        if: steps.check.outputs.new_ids != ''
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          set -e
+          IFS=',' read -ra ARR <<< "${{ steps.check.outputs.new_ids }}"
+          for ID in "${ARR[@]}"; do
+            [ -z "$ID" ] && continue
+
+            PAGE=$(curl -s "https://yasun.gg/news/$ID")
+
+            TITLE=$(echo "$PAGE" | grep -oE '<meta property="og:title" content="[^"]*"' | head -1 | sed -E 's/.*content="([^"]*)".*/\1/')
+            if [ -z "$TITLE" ]; then
+              TITLE=$(echo "$PAGE" | grep -oE '<title>[^<]*</title>' | head -1 | sed -E 's/<title>([^<]*)<\/title>/\1/')
+            fi
+            TITLE=$(echo "$TITLE" | sed -E 's/ ?[-|] ?야선지지.*$//')
+
+            if [ -z "$TITLE" ]; then
+              TITLE="(제목을 가져오지 못했습니다)"
+            fi
+
+            MSG="🚨 속보
+${TITLE}
+https://yasun.gg/news/${ID}"
+
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d chat_id="@haesunking" \
+              --data-urlencode text="${MSG}" \
+              -o telegram_response.json
+
+            echo "---- 전송 결과 (ID: $ID) ----"
+            cat telegram_response.json
+            sleep 1
+          done
+
+      - name: Save last sent id
+        if: always()
+        run: |
+          if [ -f .state/pending_last_id.txt ]; then
+            mv .state/pending_last_id.txt .state/last_news_id.txt
+          fi
+          if [ -f .state/last_news_id.txt ]; then
+            git config user.name "relay-bot"
+            git config user.email "relay-bot@users.noreply.github.com"
+            git add .state/last_news_id.txt
+            git commit -m "update last news id" || echo "커밋할 변경사항 없음"
+            git push
+          fi
