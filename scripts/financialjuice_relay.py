@@ -84,10 +84,12 @@ def main():
         clean_title = re.sub(r"^FinancialJuice:\s*", "", title)
         translated = translate_to_ko(clean_title)
 
+        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))  # 한국시간(UTC+9)
+
         if translated and translated.lower() != clean_title.lower():
-            msg = "\U0001F6A8 속보\n%s\n(EN: %s)" % (translated, clean_title)
+            msg = "\U0001F6A8 속보 (%s)\n%s\n(EN: %s)" % (kst_time, translated, clean_title)
         else:
-            msg = "\U0001F6A8 속보\n%s" % clean_title
+            msg = "\U0001F6A8 속보 (%s)\n%s" % (kst_time, clean_title)
 
         body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
         req2 = urllib.request.Request(
