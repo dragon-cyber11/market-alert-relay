@@ -15,6 +15,11 @@
 #   - 진행 중 상태(마지막으로 보낸 뉴스 번호)는 10분에 한 번씩 저장소에 커밋해서, 잡이 도중에
 #     죽어도 최근 상태를 잃지 않게 함
 #
+# [중요] 대기열에 오래 서 있던 잡은 '예약이 걸린 시점'의 저장소 상태를 받아옴.
+#   2시간 대기했다면 2시간 전 상태(=오래된 마지막 뉴스 번호)로 시작해서 이미 보낸 뉴스를
+#   다시 보내게 됨. 그래서 checkout 에 ref: main 을 주고, 시작 직후 원격 최신으로 강제로
+#   맞춘 뒤에 루프를 돈다.
+#
 # 참고: 이 워크플로를 처음 추가하고 실행하면 "초기화"만 하고 아무것도 보내지 않습니다.
 #
 # 필요한 저장소 secret (이미 있음, 추가 설정 불필요):
@@ -42,14 +47,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main          # 대기열에 오래 있었어도 '실행 시점'의 최신 상태를 받아옴
 
       - name: Poll feed continuously and send new items to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
-          mkdir -p .state
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
+
+          # 대기 시간이 길었을 경우를 대비해 원격 최신 상태로 한 번 더 강제 정렬
+          # (여기서 코드도 최신으로 갱신되므로, 도는 중에 고친 코드가 다음 주기부터 바로 적용됨)
+          git fetch origin main
+          git reset --hard origin/main
+
+          mkdir -p .state
 
           END=$(( $(date +%s) + 5*3600 + 50*60 ))   # 약 5시간 50분 동안 반복
           CYCLE=0
@@ -62,18 +75,22 @@ jobs:
             # 120주기(5초 x 120 = 약 10분)마다 상태를 저장소에 커밋
             # (더 자주 하면 저장소에 커밋만 수만 개 쌓여서 나중에 무거워짐)
             if [ $((CYCLE % 120)) -eq 0 ]; then
-              git add .state/fj_last_newsid.txt .state/fj_heartbeat.txt .state/fj_sent_titles.json 2>/dev/null || true
-              if ! git diff --cached --quiet; then
-                git commit -q -m "financialjuice heartbeat + state update"
-                for i in 1 2 3; do
-                  if git push -q; then
-                    break
-                  fi
-                  git fetch origin main -q
-                  git rebase origin/main -q || git rebase --abort
-                  sleep 2
-                done
-              fi
+              # 원격 최신으로 브랜치 포인터만 맞추고(작업 파일은 그대로 둔 채) 상태 파일만 커밋.
+              # rebase 를 쓰면 상태 파일에서 충돌이 나 커밋이 영영 안 올라가는 일이 생겨서 이 방식으로 바꿈.
+              for i in 1 2 3; do
+                git fetch origin main -q || true
+                git reset --mixed origin/main -q || true
+                git add .state/fj_last_newsid.txt .state/fj_heartbeat.txt .state/fj_sent_titles.json 2>/dev/null || true
+                if git diff --cached --quiet; then
+                  break
+                fi
+                git commit -q -m "financialjuice heartbeat + state update" || break
+                if git push -q; then
+                  break
+                fi
+                echo "push 실패, 원격 최신 반영 후 재시도 ($i)"
+                sleep 2
+              done
             fi
 
             sleep 5
@@ -86,17 +103,21 @@ jobs:
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
-          [ -f .state/fj_last_newsid.txt ] && git add .state/fj_last_newsid.txt
-          [ -f .state/fj_heartbeat.txt ] && git add .state/fj_heartbeat.txt
-          [ -f .state/fj_sent_titles.json ] && git add .state/fj_sent_titles.json
-          git commit -m "financialjuice heartbeat + state update (final)" || echo "커밋할 변경사항 없음"
 
           for i in 1 2 3 4 5; do
+            git fetch origin main || true
+            git reset --mixed origin/main || true
+            [ -f .state/fj_last_newsid.txt ] && git add .state/fj_last_newsid.txt
+            [ -f .state/fj_heartbeat.txt ] && git add .state/fj_heartbeat.txt
+            [ -f .state/fj_sent_titles.json ] && git add .state/fj_sent_titles.json
+            if git diff --cached --quiet; then
+              echo "커밋할 변경사항 없음"
+              break
+            fi
+            git commit -m "financialjuice heartbeat + state update (final)" || break
             if git push; then
               break
             fi
-            echo "push 실패, 원격 변경사항 반영 후 재시도 ($i)"
-            git fetch origin main
-            git rebase origin/main || git rebase --abort
+            echo "push 실패, 원격 최신 반영 후 재시도 ($i)"
             sleep 2
           done
