@@ -1,228 +1,124 @@
-[probe_started] v2 browser probe, capture 480s
 페이지 로딩 중...
-페이지 로딩 완료, 480초 동안 웹소켓 데이터 수집
-[ws_open] wss://widgetdata.tradingview.com/socket.io/websocket?from=embed-widget%2Fticker-tape%2F&date=2026-07-24T11%3A40%3A08&page-uri=www.financialjuice.com%2Fhome&ancestor-origin=www.financialjuice.com&api_k
-[recv] ~m~293~m~{"session_id":"0.152630795.0_dal-charts-wgt-1-tvbs-xmxbm-3","timestamp":1785038081,"timestampMs":1785038081685,"release":"release_209-20","studies_metadata_hash":"c691ed669708a9b1088c00c5c75c
-[sent] ~m~36~m~{"m":"set_data_quality","p":["low"]}
-[sent] ~m~48~m~{"m":"set_auth_token","p":["widget_user_token"]}
-[sent] ~m~34~m~{"m":"set_locale","p":["en","US"]}
-[sent] ~m~71~m~{"m":"quote_create_session","p":["qs_multiplexer_simple_79gvrHjMxIvz"]}
-[sent] ~m~499~m~{"m":"quote_set_fields","p":["qs_multiplexer_simple_79gvrHjMxIvz","base-currency-logoid","logo","ch","chp","currency-logoid","currency_code","currency_id","base_currency_id","current_session"
-[sent] ~m~156~m~{"m":"quote_add_symbols","p":["qs_multiplexer_simple_79gvrHjMxIvz","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FX_IDC:EURUSD","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD"]}
-[recv] ~m~770~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[sent] ~m~157~m~{"m":"quote_fast_symbols","p":["qs_multiplexer_simple_79gvrHjMxIvz","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FX_IDC:EURUSD","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD"]}
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038085,"lp":64485.23,"volume":33.90972599}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038088,"volume":33.90980428}}]}
-[recv] ~m~4~m~~h~1
-[sent] ~m~4~m~~h~1
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038100,"lp":64485.22,"volume":33.90988262}}]}
-[recv] ~m~4~m~~h~2
-[sent] ~m~4~m~~h~2
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038102,"volume":33.90996095}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038104,"volume":33.92861259}}]}
-... 수집 중 (남은 시간 450초)
-[recv] ~m~4~m~~h~3
-[sent] ~m~4~m~~h~3
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038117,"volume":33.92862042}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038120,"volume":33.93637413}}]}
-[recv] ~m~4~m~~h~4
-[sent] ~m~4~m~~h~4
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~4~m~~h~5
-[sent] ~m~4~m~~h~5
-[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038132,"volume":33.9363815}}]}
-[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
-... 수집 중 (남은 시간 420초)
-[recv] ~m~4~m~~h~6
-[sent] ~m~4~m~~h~6
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038147,"volume":33.93674843}}]}
-[recv] ~m~4~m~~h~7
-[sent] ~m~4~m~~h~7
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038151,"volume":33.93715968}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038153,"volume":33.94091247}}]}
-[recv] ~m~4~m~~h~8
-[sent] ~m~4~m~~h~8
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038162,"lp":64485.23,"volume":33.94099077}}]}
-[recv] ~m~165~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038165,"lp":1880.64,"ch":7.5,"chp":0.4,"volume":365.37805}}]}
-[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038168,"lp":1880.65,"volume":365.566711}}]}
-... 수집 중 (남은 시간 390초)
-[recv] ~m~113~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"volume":365.591362}}]}
-[recv] ~m~4~m~~h~9
-[sent] ~m~4~m~~h~9
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038173,"lp":64485.22,"volume":33.94126633}}]}
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":33.94284714}}]}
-[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038181,"lp":64479.97,"ch":172.0,"chp":0.27,"volume":33.94292544}}]}
-[recv] ~m~5~m~~h~10
-[sent] ~m~5~m~~h~10
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~11
-[sent] ~m~5~m~~h~11
-[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
-... 수집 중 (남은 시간 360초)
-[recv] ~m~5~m~~h~12
-[sent] ~m~5~m~~h~12
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038205,"lp":64479.96,"volume":33.94446126}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038206,"volume":33.94610552}}]}
-[recv] ~m~5~m~~h~13
-[sent] ~m~5~m~~h~13
-[recv] ~m~5~m~~h~14
-[sent] ~m~5~m~~h~14
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038221,"lp":64479.97,"volume":33.94618383}}]}
-... 수집 중 (남은 시간 330초)
-[recv] ~m~5~m~~h~15
-[sent] ~m~5~m~~h~15
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~166~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038237,"lp":1880.52,"ch":7.3,"chp":0.39,"volume":365.60674}}]}
-[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038240,"volume":365.619171}}]}
-[recv] ~m~5~m~~h~16
-[sent] ~m~5~m~~h~16
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038247,"lp":64479.96,"volume":33.94627222}}]}
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~17
-[sent] ~m~5~m~~h~17
-[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
-... 수집 중 (남은 시간 300초)
-[recv] ~m~5~m~~h~18
-[sent] ~m~5~m~~h~18
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038266,"volume":33.94635058}}]}
-[recv] ~m~5~m~~h~19
-[sent] ~m~5~m~~h~19
-[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038272,"lp":1880.49,"volume":365.619436}}]}
-[recv] ~m~5~m~~h~20
-[sent] ~m~5~m~~h~20
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038281,"lp":64479.97,"volume":33.94642888}}]}
-[recv] ~m~148~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038284,"lp":64479.96,"volume":33.9464428}}]}
-[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":33.94650721}}]}
-... 수집 중 (남은 시간 270초)
-[recv] ~m~5~m~~h~21
-[sent] ~m~5~m~~h~21
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~22
-[sent] ~m~5~m~~h~22
-[recv] ~m~148~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038302,"lp":64479.97,"volume":33.9465855}}]}
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~23
-[sent] ~m~5~m~~h~23
-[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038318,"lp":64479.96,"volume":33.94706296}}]}
-... 수집 중 (남은 시간 240초)
-[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":33.95939664}}]}
-[recv] ~m~5~m~~h~24
-[sent] ~m~5~m~~h~24
-[recv] ~m~133~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038326,"volume":33.959475}}]}
-[recv] ~m~133~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038331,"volume":33.960744}}]}
-[recv] ~m~5~m~~h~25
-[sent] ~m~5~m~~h~25
-[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038332,"lp":64478.48,"ch":171.0,"volume":33.96480543}}]}
-[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038335,"lp":64477.02,"ch":169.0,"chp":0.26,"volume":33.96488379}}]}
-[recv] ~m~5~m~~h~26
-[sent] ~m~5~m~~h~26
-... 수집 중 (남은 시간 210초)
-[recv] ~m~5~m~~h~27
-[sent] ~m~5~m~~h~27
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038355,"lp":1880.06,"ch":6.9,"chp":0.37,"volume":365.630273}}]}
-[recv] ~m~113~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"volume":365.644757}}]}
-[recv] ~m~5~m~~h~28
-[sent] ~m~5~m~~h~28
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~29
-[sent] ~m~5~m~~h~29
-[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
-[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038378,"lp":1880.08,"volume":365.711211}}]}
-... 수집 중 (남은 시간 180초)
-[recv] ~m~5~m~~h~30
-[sent] ~m~5~m~~h~30
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038389,"volume":33.97326008}}]}
-[recv] ~m~5~m~~h~31
-[sent] ~m~5~m~~h~31
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038394,"lp":64477.03,"volume":33.97491829}}]}
-[recv] ~m~156~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038395,"lp":1880.19,"ch":7.0,"volume":365.724926}}]}
-[recv] ~m~150~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp":64485.23,"ch":177.0,"chp":0.28,"volume":34.04551768}}]}~m~113~m~{"m":"qsd","p":["qs_multiplexer_
-[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038399,"lp":1880.41,"ch":7.2,"chp":0.39,"volume":365.754648}}]}
-[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038400,"lp":64490.89,"ch":183.0,"volume":34.04605329}}]}
-[recv] ~m~5~m~~h~32
-[sent] ~m~5~m~~h~32
-[recv] ~m~166~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038401,"lp":1880.61,"ch":7.4,"chp":0.4,"volume":365.800028}}]}
-[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038401,"lp":64496.22,"ch":188.0,"chp":0.29,"volume":34.04725114}}]}~m~134~m~{"m":"qsd",
-... 수집 중 (남은 시간 150초)
-[recv] ~m~5~m~~h~33
-[sent] ~m~5~m~~h~33
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~34
-[sent] ~m~5~m~~h~34
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~35
-[sent] ~m~5~m~~h~35
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038432,"volume":34.04797366}}]}
-[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038433,"lp":1880.19,"ch":7.0,"chp":0.37,"volume":366.230495}}]}
-[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":34.04887681}}]}~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EU
-[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038440,"volume":367.295025}}]}
-... 수집 중 (남은 시간 120초)
-[recv] ~m~5~m~~h~36
-[sent] ~m~5~m~~h~36
-[recv] ~m~5~m~~h~37
-[sent] ~m~5~m~~h~37
-[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038458,"lp":64490.93,"ch":183.0,"chp":0.28,"volume":34.04902912}}]}
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038460,"lp":64490.92,"volume":34.06003016}}]}
-[recv] ~m~5~m~~h~38
-[sent] ~m~5~m~~h~38
-[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038463,"lp":64489.31,"ch":181.0,"volume":34.65350529}}]}
-[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":34.98966592}}]}
-... 수집 중 (남은 시간 90초)
-[recv] ~m~5~m~~h~39
-[sent] ~m~5~m~~h~39
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038479,"lp":64486.99,"ch":179.0,"volume":34.99066592}}]}
-[recv] ~m~5~m~~h~40
-[sent] ~m~5~m~~h~40
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038483,"lp":1880.14,"volume":367.298223}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038485,"volume":34.99068142}}]}
-[recv] ~m~156~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038487,"lp":1880.2,"chp":0.38,"volume":367.30795}}]}
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~5~m~~h~41
-[sent] ~m~5~m~~h~41
-[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
-[recv] ~m~148~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038497,"lp":64487.0,"volume":34.99069692}}]}
-[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":34.99075971}}]}
-... 수집 중 (남은 시간 60초)
-[recv] ~m~5~m~~h~42
-[sent] ~m~5~m~~h~42
-[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038506,"lp":64486.99,"volume":34.99083803}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038507,"volume":34.99091638}}]}
-[recv] ~m~5~m~~h~43
-[sent] ~m~5~m~~h~43
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038517,"volume":34.99093188}}]}
-[recv] ~m~158~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038517,"lp":1880.16,"chp":0.37,"volume":367.365464}}]}
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038520,"volume":34.99120278}}]}
-[recv] ~m~5~m~~h~44
-[sent] ~m~5~m~~h~44
-[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038522,"lp":64480.39,"ch":172.0,"chp":0.27,"volume":34.99123379}}]}
-... 수집 중 (남은 시간 30초)
-[recv] ~m~5~m~~h~45
-[sent] ~m~5~m~~h~45
-[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038533,"lp":1879.76,"ch":6.6,"chp":0.35,"volume":367.976596}}]}
-[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
-[recv] ~m~113~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"volume":368.766978}}]}
-[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038540,"volume":368.767776}}]}
-[recv] ~m~5~m~~h~46
-[sent] ~m~5~m~~h~46
-[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
-[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
-[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038551,"lp":1879.85,"ch":6.7,"chp":0.36,"volume":368.768308}}]}
-[recv] ~m~5~m~~h~47
-[sent] ~m~5~m~~h~47
-[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038555,"lp":1879.84,"volume":368.823797}}]}~m~676~m~{"m":"qsd","p":["qs_multiplexer_sim
-[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038558,"volume":34.99144279}}]}
-... 수집 중 (남은 시간 0초)
-[probe_finished] done
-수집 종료
+[net] 200 text/html; charset=utf-8 https://www.financialjuice.com/home
+[net] 200 application/x-javascript https://www.financialjuice.com/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZM2o6hDabCTkKnnsVXVBcp1PFp09qxXhEW3n9ON4fc1cCLkrAQ2
+[net] 200 application/x-javascript https://www.financialjuice.com/ScriptResource.axd?d=nv7asgRUU0tRmHNR2D6t1CzaXDBZe3fgwig0gksNTmeCMKNP0pjFAGMUxpvblQ1fwHpc
+[net] 200 text/css; charset=utf-8 https://fonts.googleapis.com/css?family=Lato:400,300
+[net] 200 application/x-javascript https://www.financialjuice.com/ScriptResource.axd?d=dwY9oWetJoJoVpgL6Zq8OEKYsZT6W0sMOMAVPUTaWT2_b7lsYUSxD7xh2n7eI3yC3YXG
+[net] 200 application/x-javascript https://www.financialjuice.com/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvvjuDMVLv_S5LM_tglkkVLtoU1VVHr2HyuitbJsOOtQiBQgL
+[net] 200 application/javascript; charse https://code.jquery.com/jquery-1.12.4.js
+[net] 200 application/javascript https://www.financialjuice.com/Scripts/jquery.signalR-2.4.3.js
+[net] 200 application/javascript; charse https://www.financialjuice.com/signalr/hubs
+[net] 200 text/javascript; charset=utf-8 https://unpkg.com/centrifuge@5.3.4/dist/centrifuge.js
+[net] 302  https://challenges.cloudflare.com/turnstile/v0/api.js
+[net] 200 application/javascript https://www.financialjuice.com//assets/js/validator.min.js
+[net] 200 application/javascript https://www.financialjuice.com//assets/bootstrap/slider/bootstrap-slider.min.js
+[net] 200 application/javascript https://www.financialjuice.com//assets/bootstrap/js/bootstrap.min.js
+[net] 200 application/javascript https://www.financialjuice.com//assets/js/jquery-toast-plugin/src/jquery.toast.js
+[net] 200 application/javascript https://www.financialjuice.com//assets/js/custom.js?v=1.2
+[net] 200 application/javascript https://www.financialjuice.com//assets/js/market-chart-widget.js?v=2.8.9
+[net] 200 application/javascript; charse https://code.jquery.com/ui/1.11.4/jquery-ui.min.js
+[net] 200 application/javascript https://www.financialjuice.com/assets/js/eventmanagement.js?v=2.8.9
+[net] 200 application/javascript https://www.financialjuice.com/widgets/video-widget.js?v=41
+[net] 200 application/javascript https://www.financialjuice.com/assets/js/fj.js?v=2.8.9
+[net] 200 text/javascript; charset=utf-8 https://code.highcharts.com/highcharts.js
+[net] 200 application/javascript; charse https://challenges.cloudflare.com/turnstile/v0/g/b0da9f4911ba/api.js
+[net] 200 text/css; charset=utf-8 https://fonts.googleapis.com/css?family=Unica+One
+[net] 200 text/javascript;charset=UTF-8 https://www.adplugg.com/serve/A48224270/js/1.1/ad.js
+로딩 완료, 120초 동안 네트워크 관찰
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/w307t/0x4AAAAAAC5MxG97bw33RX4k/auto
+[net] 200 application/javascript; charse https://static.ads-twitter.com/uwt.js
+[ws] wss://widgetdata.tradingview.com/socket.io/websocket?from=embed-widget%2Fticker-tape%2F&date=2026-07-24T11%3A40%3A08&page-uri=www.financialjuice.com%2
+[net] 200 application/javascript;charset https://www.adplugg.com/apusers/autoins/A48224270/js/1.0/jsonp.js?hn=www.financialjuice.com&bu=%2Fhome
+[net] 200 image/gif;charset=utf-8 https://analytics.twitter.com/i/adsct?bci=3&dv=UTC%26en-US%26Google%20Inc.%26Linux%20x86_64%26255%261280%26720%264%2624%
+[net] 200 image/gif;charset=utf-8 https://t.co/i/adsct?bci=3&dv=UTC%26en-US%26Google%20Inc.%26Linux%20x86_64%26255%261280%26720%264%2624%261280%26720%260%
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/abbd0d6d-a81e-4617-a047-764a43527334
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a210911478d1eb1e/1785039153689/01b662126117dcb2c86f
+[net] 200 application/json; charset=utf- https://live.financialjuice.com/FJService.asmx/Startup?info=%22EAAAAEzcO7LI2OG%2BJWl10x865xFrPdVGs9zDe3Fk2ER24b3DwJAThJd
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/abbd0d6d-a81e-4617-a047-764a43527334
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a210911478d1eb1e/1785039153689/ku9ttUalDLB.LibkHHagp
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/abbd0d6d-a81e-4617-a047-764a43527334
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchNC8PUqImx7IhvI4getne7tqQPNlW4_WIGM.U
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/793ace48-e695-4bc6-b8b0-0f8890ff9ab3
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a210915d7a25eb1e/1785039165284/7aa8899afe42493aef5b
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/793ace48-e695-4bc6-b8b0-0f8890ff9ab3
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a210915d7a25eb1e/1785039165284/71gMYr0C9p_itzh_Z47TN
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/793ace48-e695-4bc6-b8b0-0f8890ff9ab3
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcEsvshOb7ASo355F3CacDsGirMTz8lDgT6K0
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/bf050b4d-7d68-4ba7-8167-7237b3175ea5
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a21091a5eae3eb1e/1785039176883/625907214d444d654e83
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/bf050b4d-7d68-4ba7-8167-7237b3175ea5
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/bf050b4d-7d68-4ba7-8167-7237b3175ea5
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a21091a5eae3eb1e/1785039176884/wo1t0DOUXeTytJKF6lVWo
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch_knO05WcPDYn0vS.3CRelQ_h4Nod.ZIDkqc.
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/04fa99b4-41f4-40e8-941e-9b1f4b58db02
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a21091eeec68eb1e/1785039188569/104995d3bf20e2f82329
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a21091eeec68eb1e/1785039188569/3LXOMtO5Fet5C1otoibDv
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/04fa99b4-41f4-40e8-941e-9b1f4b58db02
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/04fa99b4-41f4-40e8-941e-9b1f4b58db02
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchE5N.nZq5mGGUr_prpJa6HkYO6NyC_Kb.Rk6g
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3b34537c-1649-4e96-b7ce-800d3f249013
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a2109237a973eb1e/1785039200201/dcb277e6ead37ddc8652
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3b34537c-1649-4e96-b7ce-800d3f249013
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a2109237a973eb1e/1785039200201/7Qi7bnBLprDB3WFHnTk_o
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3b34537c-1649-4e96-b7ce-800d3f249013
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch8_obpdL.ssaDtnXOMe.8YZ4EBfGV1gzkzZ7a
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3dae31bb-23c5-45ad-94f6-fccba18aaf57
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a21092804d0aeb1e/1785039211813/26c4d10e6c3df6b3e26e
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3dae31bb-23c5-45ad-94f6-fccba18aaf57
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a21092804d0aeb1e/1785039211813/dDzA3RkXidujKV3tttffY
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3dae31bb-23c5-45ad-94f6-fccba18aaf57
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch5jOgl5HkQlRn.Qj9joCS56inSYMH1sHQ2eDo
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/108429b3-88e3-45f2-be2f-19e0be53c7d9
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a21092c8cd1eeb1e/1785039223418/f23a9745a767c9964c64
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/108429b3-88e3-45f2-be2f-19e0be53c7d9
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a21092c8cd1eeb1e/1785039223418/I4cvOlXGXONcFZgwejbdw
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/108429b3-88e3-45f2-be2f-19e0be53c7d9
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchi8chqd48SMC.xY14xt9WZnrfahFdF81qp.jw
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/0f8d95ce-422d-4b18-b810-cf61d0a8e557
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a2109311bf92eb1e/1785039235098/af0cd53f730527eaa441
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/0f8d95ce-422d-4b18-b810-cf61d0a8e557
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a2109311bf92eb1e/1785039235098/E0GjSDWOwWpG.LL4uBgFY
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/0f8d95ce-422d-4b18-b810-cf61d0a8e557
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch7.KIM9drmd91hpQzEhvHoAcTjqZgYRyqirdx
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3882691b-a28d-4199-85c9-9d732e36c854
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a210935aed10eb1e/1785039246793/a4568d3298c2162739ff
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3882691b-a28d-4199-85c9-9d732e36c854
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a210935aed10eb1e/1785039246793/yTiV7lStMalDIuMkaIGOv
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3882691b-a28d-4199-85c9-9d732e36c854
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchpYVW3K30AiFTNmzvfB2MLiVV41XKHZ2sP_zF
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/e7d0fd1b-49d4-47ea-b9cf-0e3b17937bdc
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a21093a3bf17eb1e/1785039258442/37c3cbb2d0e28586c05a
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a21093a3bf17eb1e/1785039258442/8E_Z0TNPUnly8_nYLTV2h
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/e7d0fd1b-49d4-47ea-b9cf-0e3b17937bdc
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/e7d0fd1b-49d4-47ea-b9cf-0e3b17937bdc
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch033Avq0ZQ5TeUWwhLsQA0K.V25mZXizx_y6g
+[net] 200 text/plain; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3150e9c1-d7f4-4253-bbec-b99c3cdc4785
+[net] 401 text/plain; charset=utf-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/a21093ebfedaeb1e/1785039270021/22c9172148372d2cd186
+[net] 200 image/png https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/ci/a21093ebfedaeb1e/1785039270021/GMV9xb.h4_.hb7UxinyEA
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3150e9c1-d7f4-4253-bbec-b99c3cdc4785
+[net] 200 text/javascript blob:https://challenges.cloudflare.com/3150e9c1-d7f4-4253-bbec-b99c3cdc4785
+[net] 200 text/html; charset=UTF-8 https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/130120236:1785034826:DHV2i-lQQdooBGKsB5v_qVuynR_rE8Y
+HTML 저장: 509414자
+뉴스 줄 0개 추출
+탐사 종료
