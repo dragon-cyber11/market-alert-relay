@@ -1,252 +1,66 @@
 
-===== 서비스 메서드 목록 =====
-URL: https://live.financialjuice.com/FJService.asmx
-HTTP 200 | 길이 11458
+===== Startup 시그니처 =====
+문서에서 찾은 파라미터 후보: ['class']
+
+===== GetPreviousNews 시그니처 =====
+문서에서 찾은 파라미터 후보: ['class']
+
+===== GetNewsSummary 시그니처 =====
+문서에서 찾은 파라미터 후보: ['class']
 
 
-<html>
+############ Startup 파라미터 자동 탐색 ############
+[00] params={} -> HTTP 500 | Missing parameter: info.
+[01] params={'info': '""'} -> HTTP 500 | Missing parameter: TimeOffset.
+[02] params={'info': '""', 'TimeOffset': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Double. Parameter name: type ---> Input string was not in a correct format.
+[03] params={'info': '""', 'TimeOffset': '0'} -> HTTP 500 | Missing parameter: tabID.
+[04] params={'info': '""', 'TimeOffset': '0', 'tabID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[05] params={'info': '""', 'TimeOffset': '0', 'tabID': '0'} -> HTTP 500 | Missing parameter: oldID.
+[06] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[07] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0'} -> HTTP 500 | Missing parameter: TickerID.
+[08] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[09] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0'} -> HTTP 500 | Missing parameter: FeedCompanyID.
+[10] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[11] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0'} -> HTTP 500 | Missing parameter: strSearch.
+[12] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""'} -> HTTP 500 | Missing parameter: extraNID.
+[13] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[14] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '0'} -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">{"News":[],"Cal":null,"CalFil":null,"History":null,"Summary":null,"CEvents":null,"MarketData":null}</string>
 
-    <head><link rel="alternate" type="text/xml" href="/FJService.asmx?disco" />
-
-    <style type="text/css">
-    
-		BODY { color: #000000; background-color: white; font-family: Verdana; margin-left: 0px; margin-top: 0px; }
-		#content { margin-left: 30px; font-size: .70em; padding-bottom: 2em; }
-		A:link { color: #336699; font-weight: bold; text-decoration: underline; }
-		A:visited { color: #6699cc; font-weight: bold; text-decoration: underline; }
-		A:active { color: #336699; font-weight: bold; text-decoration: underline; }
-		A:hover { color: cc3300; font-weight: bold; text-decoration: underline; }
-		P { color: #000000; margin-top: 0px; margin-bottom: 12px; font-family: Verdana; }
-		pre { background-color: #e5e5cc; padding: 5px; font-family: Courier New; font-size: x-small; margin-top: -5px; border: 1px #f0f0e0 solid; }
-		td { color: #000000; font-family: Verdana; font-size: .7em; }
-		h2 { font-size: 1.5em; font-weight: bold; margin-top: 25px; margin-bottom: 10px; border-top: 1px solid #003366; margin-left: -15px; color: #003366; }
-		h3 { font-size: 1.1em; color: #000000; margin-left: -15px; margin-top: 10px; margin-bottom: 10px; }
-		ul { margin-top: 10px; margin-left: 20px; }
-		ol { margin-top: 10px; margin-left: 20px; }
-		li { margin-top: 10px; color: #000000; }
-		font.value { color: darkblue; font: bold; }
-		font.key { color: darkgreen; font: bold; }
-		font.error { color: darkred; font: bold; }
-		.heading1 { color: #ffffff; font-family: Tahoma; font-size: 26px; font-weight: normal; background-color: #003366; margin-top: 0px; margin-bottom: 0px; margin-left: -30px; padding-top: 10px; padding-bottom: 3px; padding-left: 15px; width: 105%; }
-		.button { background-color: #dcdcdc; font-family: Verdana; font-size: 1em; border-top: #cccccc 1px solid; border-bottom: #666666 1px solid; border-left: #cccccc 1px solid; border-right: #666666 1px solid; }
-		.frmheader { color: #000000; background: #dcdcdc; font-family: Verdana; font-size: .7em; font-weight: normal; border-bottom: 1px solid #dcdcdc; padding-top: 2px; padding-bottom: 2px; }
-		.frmtext { font-family: Verdana; font-size: .7em; margin-top: 8px; margin-bottom: 0px; margin-left: 32px; }
-		.frmInput { font-family: Verdana; font-size: 1em; }
-		.intro { margin-left: -15px; }
-           
-    </style>
-
-    <title>
-	FJService Web Service
-</title></head>
-
-  <body>
-
-    <div id="content">
-
-      <p class="heading1">FJService</p><br>
-
-      
-
-      <span>
-
-          <p class="intro">The following operations are supported.  For a formal definition, please review the <a href="FJService.asmx?WSDL">Service Description</a>. </p>
-          
-          
-              <ul>
-            
-              <li>
-                <a href="FJService.asmx?op=APP_FindRefID">APP_FindRefID</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=ClearCache">ClearCache</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=CreateUVEventForNoRegistrationRequired">CreateUVEventForNoRegistrationRequired</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=DeleteEventTrigger">DeleteEventTrigger</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=FJGetEvents">FJGetEvents</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=FindRefID">FindRefID</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetAPPStockCodes">GetAPPStockCodes</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetCalendar">GetCalendar</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetCalendarFilters">GetCalendarFilters</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetEventHistoricalData">GetEventHistoricalData</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetEventPublisherList">GetEventPublisherList</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetEventTriggerInfo">GetEventTriggerInfo</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetFrontPageVideo">GetFrontPageVideo</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetLatestWebinars">GetLatestWebinars</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetLiveUserCount">GetLiveUserCount</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetNewsSummary">GetNewsSummary</a>
-                
-                
-              </li>
-              <p>
-            
-              <li>
-                <a href="FJService.asmx?op=GetPreviousNews">GetPreviousNews</a>
-                
-                
-              </li>
-
-===== Startup (파라미터 없음) =====
-URL: https://live.financialjuice.com/FJService.asmx/Startup
-HTTPError 500 | 길이 26
-Missing parameter: info.
+>>> 성공! 응답 길이 184
+<?xml version="1.0" encoding="utf-8"?>
+<string xmlns="http://tempuri.org/">{"News":[],"Cal":null,"CalFil":null,"History":null,"Summary":null,"CEvents":null,"MarketData":null}</string>
 
 
-===== Startup (info 빈값) =====
-URL: https://live.financialjuice.com/FJService.asmx/Startup?info=%22%22
-HTTPError 500 | 길이 32
-Missing parameter: TimeOffset.
+############ GetPreviousNews 파라미터 자동 탐색 ############
+[00] params={} -> HTTP 500 | Missing parameter: info.
+[01] params={'info': '""'} -> HTTP 500 | Missing parameter: TimeOffset.
+[02] params={'info': '""', 'TimeOffset': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Double. Parameter name: type ---> Input string was not in a correct format.
+[03] params={'info': '""', 'TimeOffset': '0'} -> HTTP 500 | Missing parameter: tabID.
+[04] params={'info': '""', 'TimeOffset': '0', 'tabID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[05] params={'info': '""', 'TimeOffset': '0', 'tabID': '0'} -> HTTP 500 | Missing parameter: oldID.
+[06] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[07] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0'} -> HTTP 500 | Missing parameter: TickerID.
+[08] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[09] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0'} -> HTTP 500 | Missing parameter: FeedCompanyID.
+[10] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[11] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0'} -> HTTP 500 | Missing parameter: strSearch.
+[12] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""'} -> HTTP 500 | Missing parameter: extraNID.
+[13] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
+[14] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '0'} -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">[]</string>
+
+>>> 성공! 응답 길이 87
+<?xml version="1.0" encoding="utf-8"?>
+<string xmlns="http://tempuri.org/">[]</string>
 
 
-===== 메서드 시도: GetNews =====
-URL: https://live.financialjuice.com/FJService.asmx/GetNews
-HTTPError 500 | 길이 47
-GetNews Web Service method name is not valid.
+############ GetNewsSummary 파라미터 자동 탐색 ############
+[00] params={} -> HTTP 500 | Missing parameter: info.
+[01] params={'info': '""'} -> HTTP 500 | Missing parameter: TimeOffset.
+[02] params={'info': '""', 'TimeOffset': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Double. Parameter name: type ---> Input string was not in a correct format.
+[03] params={'info': '""', 'TimeOffset': '0'} -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div tabindex="0"&gt;&lt;div&gt;&lt;div&gt;&lt;p&gt;-&l
 
-
-===== 메서드 시도: News =====
-URL: https://live.financialjuice.com/FJService.asmx/News
-HTTPError 500 | 길이 44
-News Web Service method name is not valid.
-
-
-===== 메서드 시도: GetLatestNews =====
-URL: https://live.financialjuice.com/FJService.asmx/GetLatestNews
-HTTPError 500 | 길이 53
-GetLatestNews Web Service method name is not valid.
-
-
-===== 메서드 시도: LatestNews =====
-URL: https://live.financialjuice.com/FJService.asmx/LatestNews
-HTTPError 500 | 길이 50
-LatestNews Web Service method name is not valid.
-
-
-===== 메서드 시도: GetHeadlines =====
-URL: https://live.financialjuice.com/FJService.asmx/GetHeadlines
-HTTPError 500 | 길이 52
-GetHeadlines Web Service method name is not valid.
-
-
-===== fj.js 에서 API 관련 부분 검색 =====
-fj.js 길이: 747005
-
---- 'asmx' 4곳 ---
-"|7|10|5|3|6|9','div[class*=\\x22headline-item\\x22]','link','.copied','input','3|6|4|5|2|1|0','WUtxh','RqIfh','comingUp','JAegQ','adebA','XbSkK','FJNewsSummary','iDeOR','KxdOx','uwiLA','$&@','FJService.asmx/Startup','Get','application/json;\\x20charset=utf-8','json','COpDd','gAjKm','rAjvb','stringify','Xujlw','lbBdK','ksnGb','XbcSq','ajax','YiWmn','Zpgvr','RVnAB','shJAY','DHOaH','kIXLf','HCNGr','rGwyU','FpUTM','GEDpc','QDDoN','...','zBsXu','TUlay','"
-"vTkL','copy','EekMP','value','Fhsbn','fadeIn','removeChild','appendChild','dAkyA','fadeOut','select','createElement','LNhDj','uToLk','VooNX','lUYKe','xSqdy','AgwcI','qWzMB','xAgmF','HPtfj','FJService.asmx/GetPreviousNews','vkqgh','kKKoG','sYhDF','rGqpU','SeCOj','PBGIl','LVPAZ','nOFTH','RcVTA','YTSLQ','jrvBP','rmXQI','sFhCy','NJnYB','jtClA','OgmtZ','Gdijf','ThAzA','SNfdi','ulhZx','iLoSN','YoCjA','Imp','filter','CsbWY','PcImL','XKSKS','kkoaQ','RQpo"
-"s/voicedc.mp3','widget','blue-heart-count','_UpVote_Icon','grey-heart-count','blue','#comingUp-old\\x20>\\x20tbody\\x20>\\x20tr:first','#d0eafd','white','TWWfl','vNbqN','dQfHe','LgQwZ','rAbur','FJService.asmx/CreateUVEventForNoRegistrationRequired','JSON','AtNyt','Hcjur','SVTUn','Ajtog','zSTJg','bqSyP','play','KVGTu','NWTkF','voiceDC','oHnSw','RFawy','YQZaH','GFbDH','RqHOX','GsZcE','dAGPD','rThAq','IAoOq','#comingUp\\x20tr:last','EkFYp','QIsvH','GpFuI"
-"T','SbSyB','vUpRj','Hbtst','QtBuK','hLKva','CxVab','llSVd','HrsCs','kGzGQ','fzIzO','gMoae','ihZAY','RFHandler.aspx?id=','NvVMt','DhrCt','yjjsU','mYRgQ','KBMaa','Stop\\x20Following','FJ-TZ','WebService.asmx/GetLatestVideos','POST','{NID:','https://www.facebook.com/sharer/sharer.php?u=','window.setTimeout(\\x27UpdateEventClock(\\x22','\\x22,\\x20\\x22','\\x22);\\x27,\\x20','\\x22);\\x27,\\x200);','nouser','fa\\x20fa-play\\x20ts-red','FJservice.asmx/FindRefID','g"
-
---- 'Startup' 4곳 ---
-"|5|3|6|9','div[class*=\\x22headline-item\\x22]','link','.copied','input','3|6|4|5|2|1|0','WUtxh','RqIfh','comingUp','JAegQ','adebA','XbSkK','FJNewsSummary','iDeOR','KxdOx','uwiLA','$&@','FJService.asmx/Startup','Get','application/json;\\x20charset=utf-8','json','COpDd','gAjKm','rAjvb','stringify','Xujlw','lbBdK','ksnGb','XbcSq','ajax','YiWmn','Zpgvr','RVnAB','shJAY','DHOaH','kIXLf','HCNGr','rGwyU','FpUTM','GEDpc','QDDoN','...','zBsXu','TUlay','CLjzo"
-"){return _0x1f236b*_0x4e2422;}};if(_0xe588b7[_0x24f7('0xfd')](EnablePush,LoggedUser))_0xe588b7[_0x24f7('0xfe')](RegisterMessageHub,'');_0xe588b7['RZpsP'](SetSelectedStream);_0xe588b7[_0x24f7('0xff')](StartupData);if(!EnablePush)InervalID=window[_0x24f7('0x100')]('CheckFeed();',0x1388);window[_0x24f7('0x45')](function(){var _0x13f335={'obgbP':function(_0x1b7555,_0x278713){return _0xe588b7[_0x24f7('0xfe')](_0x1b7555,_0x278713);},'EsqJo':function(_0"
-" _0x4cb703=$(_0x19651f[_0x24f7('0x14b')])[_0x24f7('0x1e')]('feedid');if(_0x4cb703==_0x19651f['GmmMV'])return _0x19651f[_0x24f7('0x14c')]($,_0x24f7('0x14d'))[_0x24f7('0x54')]();else return'';}function StartupData(){var _0x428bbd={'ksBJN':function(_0xcab672,_0x301938){return _0xcab672(_0x301938);},'BiHrr':_0x24f7('0x14e'),'vCCYs':function(_0x4b6bfa,_0x3fb4b5){return _0x4b6bfa(_0x3fb4b5);},'iErlQ':_0x24f7('0x25'),'MvRDg':function(_0x5c6581,_0x42a5ed"
-"f7('0x1b1')],_0x162d62['uDnTa']);},0x3e8);continue;case'3':if(_0x162d62[_0x24f7('0x1b2')](EnablePush,LoggedUser))_0x162d62[_0x24f7('0x1b3')](RegisterMessageHub,'');continue;case'4':_0x162d62['voQaL'](StartupData);continue;case'5':if(!EnablePush)InervalID=window[_0x24f7('0x100')](_0x24f7('0x1b4'),0x1388);continue;case'6':SetSelectedStream();continue;}break;}}else{if(!(_0x428bbd[_0x24f7('0x1b5')](_0x428bbd['rjJFN'](ReadCookie,_0x428bbd[_0x24f7('0x1"
-
---- 'webpubsub' 1곳 ---
-"'WSNfP','WlmQq','tNEoi','tVdpY','XYFRs','plxtW','VMqvy','zOUcv','AinNA','Klppu','rZDuF','muhbC','pDMUr','beforeunload','JdpoH','lZSnB','tmAyN','RuHUi','QIpPc','arLqQ','fBViK','nQdsv','wss://strikesws.webpubsub.azure.com/client/hubs/NewsHubPS?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3NDY3MzkwNDAsImV4cCI6MTc0NjgyNTQ0MCwiaWF0IjoxNzQ2NzM5MDQwLCJhdWQiOiJodHRwczovL3N0cmlrZXN3cy53ZWJwdWJzdWIuYXp1cmUuY29tL2NsaWVudC9odWJzL05ld3NIdWJQUy"
-
---- 'negotiate' 0곳 ---
-
---- 'Breaking' 4곳 ---
-"Number','FormattedDate','TObKB','WmfFU','Forecast','chart','Zfszo','#fff','iVswi','points','reduce','KTIOZ','Irhzo','name','</b>','Epbtf','jOCQY','nUInc','setOptions','kokcT','NHHbD','cTWsW','gHumN','Breaking','vtWXJ','aXYDH','SKKUP','bAgKH','GQpuH','TvmWl','csTew','UyLFN','GyAcj','cpHwt','ZKQSn','ACbAy','FbVPk','MzlCg','cLAuT','LczqQ','hzIVf','after','OgWTA','Vjwhk','IpDQI','text','&nbsp;<button\\x20class=\\x22close\\x20closeTab\\x22\\x20type=\\x22but"
-"RFDSz','NioSm','XKxBo','XhpHR','ZFypa','pfQUZ','HZXfc','MgIXN','WoazT','HicPY','GGXpP','ALYsf','lKoUi','GhEVh','LxybT','HctAk','bwuEz','lTUPB','Alerts\\x20OFF','PJkcZ','tiiZR','pvNaM','ZTuqa','rEyuW','Breaking\\x20Only','XEkFa','fmyxI','UYKPz','IAaSh','NxuXl','zpIKH','preventDefault','stopPropagation','XMboD','KMvsB','IiKYe','prop','CjlzC','gPKnO','zNYeI','BArma','xxFvC','ConnectToTS','PbEhu','qqYby','#calenderPane','WzMcV','wEwAh','rDtSG','WqjEf',"
-"'GgkUo','xMHlI','jPonA','xIQAo','KtHcP','yKuxE','Przuf','qfsoT','sjUwI','nxhEn','FpdgQ','kPKkL','YkOuh','JfkqF','Mwmye','hide.bs.modal','grTJF','yXRyR','eventTriggers','sendEventTriggers','sendInitialBreaking','6|5|2|4|3|1|0','PvWUm','edEkD','tUYtc','ZjMNH','Lwqmn','QyFbR','QHCSe','XqWhL','NjEjF','Rqcug','NfcsF','wxIdo','hDJEq','AVfbg','FlJTz','ifeia','FiVJD','AmArk','MqLmL','lGLgc','WZLXo','zzQhK','TnLAU','AZack','CQRvc','Hqduu','Qhwwi','cfTYD',"
-"QaKM','xnyMM','Exxzl','XwHOG','hBtDC','zmWWd','OKRig','blolV','FJService.asmx/GetTinyURL','{url:\\x27','wfqfN','QXnBd','aEvqA','gtyrK','fESkI','sdjYo','MKvzy','qtNBI','wyNbv','/FJService.asmx/GetLatestBreakingNews','Atcxc','EghWk','wIHED','vBGXH','ZSugt','uWKXL','kgKWa','iHGqQ','LvuQF','OtPmD','Zarok','pZxvU','AbCyl','sxFMf','ui-corner-all','fixed','OaOBW','2|1|12|13|16|17|14|11|6|8|15|3|7|5|4|0|9|10','FAAiT','/FJService.asmx/UserPing','JHgBI','zX"
-
---- 'news-' 4곳 ---
-"Az','<img\\x20style=\\x27border-width:0;\\x27\\x20src=\\x27https://stocktwits.com/images/widget/stocktwits_share.png\\x27\\x20/>','CulRy','screen','kvGil','qKCbf','bEven','FeAnC',',top=','<span\\x20class=\\x22news-label\\x22>','iuaxB','nWQPt','oMxvm','IxDIA','YnTQK','bRbxw','KxCtn','OirLk','gNvpG','hide','adnCh','DZiYC','YdeXq','poSzp','BUwPW','cFpUK','GbeUv','bdgVg','ZuEcg','bVKuj','sWLoF','TriggerID','GTValue','sqcOX','gFfdC','LTAID','GTAID','LdhGq','kcc"
-",'#calendar-filters','vsyqz','jewgO','rbXQR','HZyRb','xfeWI','mOPiz','EBfmL','AkjFD','vRxyN','unQHm','xezJS','true','hpAlertNormal','GtVDP','jfMVz','UCOBt','ABeYc','reconnected\\x20-\\x20','#ts-codes','news-settings.aspx','vvXDz','.cal-country-checkbox','qRGtp','ajYAx','xioBi','BIEsG','#tblLatestVideos\\x20>\\x20tbody','Vzxog','.select-all-country','EIFAV','cxNoN','okFZZ','ygdzB','EGAZA','yTbYs','IembP','baUMy','wTvgx','hVEny','ZdswU','yWOgG','\\x20{{"
-"Ingb','FAMGD','URpBd','smcHi','eXaOJ','nEnBa','zfmaU','mJToN','uierw','mkEFY','TkiVj','ysFBE','ylfpX','ivEkA','IpClE','fLBVv','gXtju','qIpxi','CkPIg','CElqK','OOLli','LCcgl','qZYSK','<tr\\x20class=\\x22news-row','CJzmL','AjUbM','CnNlR','JUwLQ','ZAvhg','qcPiq','sMMLb','dNYMJ','nyZKg','wrXrL','NmgCQ','MZlMs','hyAID','AYrpK','qsJWl','RtZtw','history-chart','HonQX','hDnPH','GaCvo','EMlRi','lNxWG','SMwsR','nzovt','ajMRu','JRkbz','mrDKu','evGSz','SwLig',"
-"),null,null);}}}}});$('body')['on']('click','.feeds-list\\x20li\\x20a\\x20.button-settings',function(_0x59b2c5){var _0x1689d5={'qWAFZ':function(_0x155979,_0x572137){return _0x155979+_0x572137;},'jsHiX':'news-settings.aspx'};window['location'][_0x24f7('0x280')]=_0x1689d5[_0x24f7('0xb78')](devSite,_0x1689d5[_0x24f7('0xb79')]);_0x59b2c5[_0x24f7('0x93e')]();_0x59b2c5[_0x24f7('0x93f')]();});$(_0x24f7('0x55'))['on'](_0x24f7('0x4e'),'.feeds-list\\x20li\\x20a"
-
---- 'info=' 0곳 ---
+>>> 성공! 응답 길이 325
+<?xml version="1.0" encoding="utf-8"?>
+<string xmlns="http://tempuri.org/">&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div tabindex="0"&gt;&lt;div&gt;&lt;div&gt;&lt;p&gt;-&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;</string>
 
 탐사 종료
