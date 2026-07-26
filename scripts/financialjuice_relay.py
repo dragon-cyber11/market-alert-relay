@@ -20,6 +20,23 @@ def normalize_title(text):
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+NOISE_KEYWORDS = [
+    "civil defence", "civil defense", "civil defense siren", "early warning system",
+    "national early warning", "air raid siren", "danger has passed", "danger over",
+    "early alert issued",
+    "weather alert", "storm warning", "flood warning", "wildfire warning",
+    "hurricane warning", "tornado warning", "heat advisory",
+    "football match", "soccer match", "basketball game", "world cup", "olympic",
+    "grand slam", "tournament final",
+    "obituary", "dies at age", "passes away", "royal wedding", "coronation ceremony",
+]
+_NOISE_PATTERNS = [re.compile(re.escape(k), re.IGNORECASE) for k in NOISE_KEYWORDS]
+
+
+def is_noise(title):
+    return any(p.search(title) for p in _NOISE_PATTERNS)
+
+
 def load_sent_titles():
     if not os.path.exists(SENT_TITLES_FILE):
         return {}
@@ -40,16 +57,24 @@ def save_sent_titles(sent_titles, now_epoch):
         json.dump(pruned, f)
 
 
+# 가입/키 없이 쓸 수 있는 비공식 구글 번역 엔드포인트 (브라우저의 구글 번역이 실제로 쓰는 것과 동일).
+# 공식 지원 API가 아니라서 예고 없이 막히거나 바뀔 수 있지만, 그런 경우엔 그냥 원문만 전송되니
+# 봇 자체가 멈추지는 않음.
+GOOGLE_UNOFFICIAL_URL = "https://translate.googleapis.com/translate_a/single"
+
+
 def translate_to_ko(text):
-    """무료 MyMemory API로 영어 -> 한국어 번역. 실패하면 None을 반환(원문만 전송)."""
+    """비공식 구글 번역으로 영어 -> 한국어 번역. 실패하면 None을 반환(원문만 전송)."""
     try:
-        params = urllib.parse.urlencode({"q": text, "langpair": "en|ko"})
-        url = "https://api.mymemory.translated.net/get?%s" % params
+        params = urllib.parse.urlencode(
+            {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text}
+        )
+        url = "%s?%s" % (GOOGLE_UNOFFICIAL_URL, params)
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
-        translated = data.get("responseData", {}).get("translatedText")
-        if translated and not translated.strip().startswith("QUERY LENGTH"):
+        translated = "".join(seg[0] for seg in data[0] if seg and seg[0])
+        if translated:
             return translated.strip()
     except Exception as e:
         print("번역 실패:", e)
@@ -117,8 +142,10 @@ def main():
         key = normalize_title(clean_title)
         if key in sent_titles:
             continue
-        to_send.append((epoch, clean_title))
         sent_titles[key] = epoch
+        if is_noise(clean_title):
+            continue
+        to_send.append((epoch, clean_title))
 
     to_send = to_send[-15:]
 
@@ -135,7 +162,7 @@ def main():
     for epoch, clean_title in to_send:
         translated = translate_to_ko(clean_title)
 
-        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))  # 한국시간(UTC+9)
+        kst_time = time.strftime("%H:%M", time.gmtime(epoch + 9 * 3600))
 
         if translated and translated.lower() != clean_title.lower():
             msg = "\U0001F6A8 %s\n(EN: %s)\n(%s)" % (translated, clean_title, kst_time)
