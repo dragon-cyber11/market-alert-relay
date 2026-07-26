@@ -1,8 +1,8 @@
 # 저장 위치: .github/workflows/fj-ws-probe.yml
-# FinancialJuice 탐사 v3 (네트워크 + DOM, 수동 실행 전용)
-# - 뉴스 데이터를 어디서 어떤 형식으로 받아오는지, 빨간 뉴스에 어떤 표시가 붙는지 확인
-# - 결과: .state/fj_net.jsonl, .state/fj_page.html, .state/fj_rows.txt
-# - 텔레그램 전송 안 함. 기존 릴레이에 영향 없음. 2~3분이면 끝남
+# FinancialJuice 탐사 v4 (뉴스 API 직접 호출 테스트, 수동 실행 전용)
+# - 빨간 뉴스 정보(Breaking/Level)가 담긴 JSON API를 우리가 직접 호출할 수 있는지 확인
+# - 결과: .state/fj_api_probe.txt
+# - 텔레그램 전송 안 함. 기존 릴레이에 영향 없음. 30초면 끝남
 name: FJ WebSocket Probe
 
 on:
@@ -14,32 +14,25 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install playwright + chromium
-        run: |
-          pip install playwright || pip install --break-system-packages playwright
-          python3 -m playwright install --with-deps chromium
-
-      - name: Capture network + DOM
+      - name: Probe news API
         run: |
           mkdir -p .state
-          rm -f .state/fj_net.jsonl .state/fj_page.html .state/fj_rows.txt .state/fj_ws_sample.jsonl
-          python3 scripts/fj_ws_probe.py 120 2>&1 | tail -200 | tee .state/fj_ws_probe_log.txt
+          python3 scripts/fj_ws_probe.py 2>&1 | tail -300 | tee .state/fj_ws_probe_log.txt
 
-      - name: Commit captured data
+      - name: Commit results
         if: always()
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
-          for f in .state/fj_net.jsonl .state/fj_page.html .state/fj_rows.txt .state/fj_ws_probe_log.txt; do
+          for f in .state/fj_api_probe.txt .state/fj_ws_probe_log.txt; do
             [ -f "$f" ] && git add "$f"
           done
-          git add -u .state/fj_ws_sample.jsonl 2>/dev/null || true
-          git commit -m "fj probe v3 (network + dom)" || echo "커밋할 변경사항 없음"
+          git commit -m "fj probe v4 (news api)" || echo "커밋할 변경사항 없음"
           for i in 1 2 3 4 5; do
             if git push; then
               break
