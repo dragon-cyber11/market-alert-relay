@@ -1,130 +1,228 @@
-negotiate(1): {'ProtocolVersion': '2.0', 'RedirectUrl': 'https://fjs.service.signalr.net/aspnetcl...', 'AccessToken': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtp...', 'TryWebSockets': True}
-negotiate(2): {'ProtocolVersion': '1.5', 'ConnectionToken': 'RMPoLgSEhtsKavGKWprhGQxvUVMAK02', 'ConnectionId': 'RMPoLgSEhtsKavGKWprhGQxvUVMAK02', 'KeepAliveTimeout': '100000.0', 'DisconnectTimeout': '5.0', 'TransportConnectTimeout': '30', 'LongPollDelay': '0.0', 'TryWebSockets': 'True', 'Url': '/aspnetclient'}
-connecting: wss://fjs.service.signalr.net/aspnetclient/connect?transport=webSockets&clientPr...
-웹소켓 연결 성공
-start: {'Response': 'started'}
-메시지 수신 #1 (길이 14): {"S":1,"M":[]}
-메시지 수신 #2 (길이 216): {"E":"Application server closed the connection. Reason: Value cannot be null.
-Parameter name: context", "M":[{"E":"Application server closed the connection. Reason: Value cannot be null.
-Parameter name: context"}]}
-수신 오류, 5초 후 계속: Connection to remote host was lost.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수신 오류, 5초 후 계속: socket is already closed.
-수집 종료: 총 2개 메시지를 .state/fj_ws_sample.jsonl 에 기록
+[probe_started] v2 browser probe, capture 480s
+페이지 로딩 중...
+페이지 로딩 완료, 480초 동안 웹소켓 데이터 수집
+[ws_open] wss://widgetdata.tradingview.com/socket.io/websocket?from=embed-widget%2Fticker-tape%2F&date=2026-07-24T11%3A40%3A08&page-uri=www.financialjuice.com%2Fhome&ancestor-origin=www.financialjuice.com&api_k
+[recv] ~m~293~m~{"session_id":"0.152630795.0_dal-charts-wgt-1-tvbs-xmxbm-3","timestamp":1785038081,"timestampMs":1785038081685,"release":"release_209-20","studies_metadata_hash":"c691ed669708a9b1088c00c5c75c
+[sent] ~m~36~m~{"m":"set_data_quality","p":["low"]}
+[sent] ~m~48~m~{"m":"set_auth_token","p":["widget_user_token"]}
+[sent] ~m~34~m~{"m":"set_locale","p":["en","US"]}
+[sent] ~m~71~m~{"m":"quote_create_session","p":["qs_multiplexer_simple_79gvrHjMxIvz"]}
+[sent] ~m~499~m~{"m":"quote_set_fields","p":["qs_multiplexer_simple_79gvrHjMxIvz","base-currency-logoid","logo","ch","chp","currency-logoid","currency_code","currency_id","base_currency_id","current_session"
+[sent] ~m~156~m~{"m":"quote_add_symbols","p":["qs_multiplexer_simple_79gvrHjMxIvz","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FX_IDC:EURUSD","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD"]}
+[recv] ~m~770~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[sent] ~m~157~m~{"m":"quote_fast_symbols","p":["qs_multiplexer_simple_79gvrHjMxIvz","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FX_IDC:EURUSD","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD"]}
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038085,"lp":64485.23,"volume":33.90972599}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038088,"volume":33.90980428}}]}
+[recv] ~m~4~m~~h~1
+[sent] ~m~4~m~~h~1
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038100,"lp":64485.22,"volume":33.90988262}}]}
+[recv] ~m~4~m~~h~2
+[sent] ~m~4~m~~h~2
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038102,"volume":33.90996095}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038104,"volume":33.92861259}}]}
+... 수집 중 (남은 시간 450초)
+[recv] ~m~4~m~~h~3
+[sent] ~m~4~m~~h~3
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038117,"volume":33.92862042}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038120,"volume":33.93637413}}]}
+[recv] ~m~4~m~~h~4
+[sent] ~m~4~m~~h~4
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~4~m~~h~5
+[sent] ~m~4~m~~h~5
+[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038132,"volume":33.9363815}}]}
+[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
+... 수집 중 (남은 시간 420초)
+[recv] ~m~4~m~~h~6
+[sent] ~m~4~m~~h~6
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038147,"volume":33.93674843}}]}
+[recv] ~m~4~m~~h~7
+[sent] ~m~4~m~~h~7
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038151,"volume":33.93715968}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038153,"volume":33.94091247}}]}
+[recv] ~m~4~m~~h~8
+[sent] ~m~4~m~~h~8
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038162,"lp":64485.23,"volume":33.94099077}}]}
+[recv] ~m~165~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038165,"lp":1880.64,"ch":7.5,"chp":0.4,"volume":365.37805}}]}
+[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038168,"lp":1880.65,"volume":365.566711}}]}
+... 수집 중 (남은 시간 390초)
+[recv] ~m~113~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"volume":365.591362}}]}
+[recv] ~m~4~m~~h~9
+[sent] ~m~4~m~~h~9
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038173,"lp":64485.22,"volume":33.94126633}}]}
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":33.94284714}}]}
+[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038181,"lp":64479.97,"ch":172.0,"chp":0.27,"volume":33.94292544}}]}
+[recv] ~m~5~m~~h~10
+[sent] ~m~5~m~~h~10
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~11
+[sent] ~m~5~m~~h~11
+[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
+... 수집 중 (남은 시간 360초)
+[recv] ~m~5~m~~h~12
+[sent] ~m~5~m~~h~12
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038205,"lp":64479.96,"volume":33.94446126}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038206,"volume":33.94610552}}]}
+[recv] ~m~5~m~~h~13
+[sent] ~m~5~m~~h~13
+[recv] ~m~5~m~~h~14
+[sent] ~m~5~m~~h~14
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038221,"lp":64479.97,"volume":33.94618383}}]}
+... 수집 중 (남은 시간 330초)
+[recv] ~m~5~m~~h~15
+[sent] ~m~5~m~~h~15
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~166~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038237,"lp":1880.52,"ch":7.3,"chp":0.39,"volume":365.60674}}]}
+[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038240,"volume":365.619171}}]}
+[recv] ~m~5~m~~h~16
+[sent] ~m~5~m~~h~16
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038247,"lp":64479.96,"volume":33.94627222}}]}
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~17
+[sent] ~m~5~m~~h~17
+[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
+... 수집 중 (남은 시간 300초)
+[recv] ~m~5~m~~h~18
+[sent] ~m~5~m~~h~18
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038266,"volume":33.94635058}}]}
+[recv] ~m~5~m~~h~19
+[sent] ~m~5~m~~h~19
+[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038272,"lp":1880.49,"volume":365.619436}}]}
+[recv] ~m~5~m~~h~20
+[sent] ~m~5~m~~h~20
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038281,"lp":64479.97,"volume":33.94642888}}]}
+[recv] ~m~148~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038284,"lp":64479.96,"volume":33.9464428}}]}
+[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":33.94650721}}]}
+... 수집 중 (남은 시간 270초)
+[recv] ~m~5~m~~h~21
+[sent] ~m~5~m~~h~21
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~22
+[sent] ~m~5~m~~h~22
+[recv] ~m~148~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038302,"lp":64479.97,"volume":33.9465855}}]}
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~23
+[sent] ~m~5~m~~h~23
+[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038318,"lp":64479.96,"volume":33.94706296}}]}
+... 수집 중 (남은 시간 240초)
+[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":33.95939664}}]}
+[recv] ~m~5~m~~h~24
+[sent] ~m~5~m~~h~24
+[recv] ~m~133~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038326,"volume":33.959475}}]}
+[recv] ~m~133~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038331,"volume":33.960744}}]}
+[recv] ~m~5~m~~h~25
+[sent] ~m~5~m~~h~25
+[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038332,"lp":64478.48,"ch":171.0,"volume":33.96480543}}]}
+[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038335,"lp":64477.02,"ch":169.0,"chp":0.26,"volume":33.96488379}}]}
+[recv] ~m~5~m~~h~26
+[sent] ~m~5~m~~h~26
+... 수집 중 (남은 시간 210초)
+[recv] ~m~5~m~~h~27
+[sent] ~m~5~m~~h~27
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038355,"lp":1880.06,"ch":6.9,"chp":0.37,"volume":365.630273}}]}
+[recv] ~m~113~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"volume":365.644757}}]}
+[recv] ~m~5~m~~h~28
+[sent] ~m~5~m~~h~28
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~29
+[sent] ~m~5~m~~h~29
+[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
+[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038378,"lp":1880.08,"volume":365.711211}}]}
+... 수집 중 (남은 시간 180초)
+[recv] ~m~5~m~~h~30
+[sent] ~m~5~m~~h~30
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038389,"volume":33.97326008}}]}
+[recv] ~m~5~m~~h~31
+[sent] ~m~5~m~~h~31
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038394,"lp":64477.03,"volume":33.97491829}}]}
+[recv] ~m~156~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038395,"lp":1880.19,"ch":7.0,"volume":365.724926}}]}
+[recv] ~m~150~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp":64485.23,"ch":177.0,"chp":0.28,"volume":34.04551768}}]}~m~113~m~{"m":"qsd","p":["qs_multiplexer_
+[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038399,"lp":1880.41,"ch":7.2,"chp":0.39,"volume":365.754648}}]}
+[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038400,"lp":64490.89,"ch":183.0,"volume":34.04605329}}]}
+[recv] ~m~5~m~~h~32
+[sent] ~m~5~m~~h~32
+[recv] ~m~166~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038401,"lp":1880.61,"ch":7.4,"chp":0.4,"volume":365.800028}}]}
+[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038401,"lp":64496.22,"ch":188.0,"chp":0.29,"volume":34.04725114}}]}~m~134~m~{"m":"qsd",
+... 수집 중 (남은 시간 150초)
+[recv] ~m~5~m~~h~33
+[sent] ~m~5~m~~h~33
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~34
+[sent] ~m~5~m~~h~34
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~35
+[sent] ~m~5~m~~h~35
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038432,"volume":34.04797366}}]}
+[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038433,"lp":1880.19,"ch":7.0,"chp":0.37,"volume":366.230495}}]}
+[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":34.04887681}}]}~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EU
+[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038440,"volume":367.295025}}]}
+... 수집 중 (남은 시간 120초)
+[recv] ~m~5~m~~h~36
+[sent] ~m~5~m~~h~36
+[recv] ~m~5~m~~h~37
+[sent] ~m~5~m~~h~37
+[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038458,"lp":64490.93,"ch":183.0,"chp":0.28,"volume":34.04902912}}]}
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038460,"lp":64490.92,"volume":34.06003016}}]}
+[recv] ~m~5~m~~h~38
+[sent] ~m~5~m~~h~38
+[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038463,"lp":64489.31,"ch":181.0,"volume":34.65350529}}]}
+[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":34.98966592}}]}
+... 수집 중 (남은 시간 90초)
+[recv] ~m~5~m~~h~39
+[sent] ~m~5~m~~h~39
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~160~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038479,"lp":64486.99,"ch":179.0,"volume":34.99066592}}]}
+[recv] ~m~5~m~~h~40
+[sent] ~m~5~m~~h~40
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038483,"lp":1880.14,"volume":367.298223}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038485,"volume":34.99068142}}]}
+[recv] ~m~156~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038487,"lp":1880.2,"chp":0.38,"volume":367.30795}}]}
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~5~m~~h~41
+[sent] ~m~5~m~~h~41
+[recv] ~m~676~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FX_IDC:EURUSD","s":"ok","v":{"logo":{"logoid":"country/EU","logoid2":"country/US","style":"pair"},"pro_name":"FX_IDC:EURUSD","minmov
+[recv] ~m~148~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038497,"lp":64487.0,"volume":34.99069692}}]}
+[recv] ~m~114~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"volume":34.99075971}}]}
+... 수집 중 (남은 시간 60초)
+[recv] ~m~5~m~~h~42
+[sent] ~m~5~m~~h~42
+[recv] ~m~149~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038506,"lp":64486.99,"volume":34.99083803}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038507,"volume":34.99091638}}]}
+[recv] ~m~5~m~~h~43
+[sent] ~m~5~m~~h~43
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038517,"volume":34.99093188}}]}
+[recv] ~m~158~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038517,"lp":1880.16,"chp":0.37,"volume":367.365464}}]}
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038520,"volume":34.99120278}}]}
+[recv] ~m~5~m~~h~44
+[sent] ~m~5~m~~h~44
+[recv] ~m~171~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038522,"lp":64480.39,"ch":172.0,"chp":0.27,"volume":34.99123379}}]}
+... 수집 중 (남은 시간 30초)
+[recv] ~m~5~m~~h~45
+[sent] ~m~5~m~~h~45
+[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038533,"lp":1879.76,"ch":6.6,"chp":0.35,"volume":367.976596}}]}
+[recv] ~m~667~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCBTC","style":"single"},"pro_name":"BITSTAMP:BTCUSD","minmove2":0,"minmov
+[recv] ~m~113~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"volume":368.766978}}]}
+[recv] ~m~134~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038540,"volume":368.767776}}]}
+[recv] ~m~5~m~~h~46
+[sent] ~m~5~m~~h~46
+[recv] ~m~618~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"FOREXCOM:NSXUSD","s":"ok","v":{"logo":{"logoid":"indices/nasdaq-100","style":"single"},"pro_name":"FOREXCOM:NAS100","minmove2":1,"mi
+[recv] ~m~669~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"logo":{"logoid":"crypto/XTVCETH","style":"single"},"pro_name":"BITSTAMP:ETHUSD","minmove2":0,"minmov
+[recv] ~m~167~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038551,"lp":1879.85,"ch":6.7,"chp":0.36,"volume":368.768308}}]}
+[recv] ~m~5~m~~h~47
+[sent] ~m~5~m~~h~47
+[recv] ~m~147~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:ETHUSD","s":"ok","v":{"lp_time":1785038555,"lp":1879.84,"volume":368.823797}}]}~m~676~m~{"m":"qsd","p":["qs_multiplexer_sim
+[recv] ~m~135~m~{"m":"qsd","p":["qs_multiplexer_simple_79gvrHjMxIvz",{"n":"BITSTAMP:BTCUSD","s":"ok","v":{"lp_time":1785038558,"volume":34.99144279}}]}
+... 수집 중 (남은 시간 0초)
+[probe_finished] done
+수집 종료
