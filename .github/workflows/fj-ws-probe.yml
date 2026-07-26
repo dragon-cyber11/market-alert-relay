@@ -1,8 +1,8 @@
 # 저장 위치: .github/workflows/fj-ws-probe.yml
-# FinancialJuice 웹소켓 탐사 v2 (브라우저 방식, 수동 실행 전용)
-# - 헤드리스 크롬으로 사이트를 실제로 열어서 웹소켓 송수신 데이터를 전부 수집
-# - 결과: .state/fj_ws_sample.jsonl + .state/fj_ws_probe_log.txt 로 커밋
-# - 텔레그램 전송은 하지 않음. 기존 릴레이에 영향 없음
+# FinancialJuice 탐사 v3 (네트워크 + DOM, 수동 실행 전용)
+# - 뉴스 데이터를 어디서 어떤 형식으로 받아오는지, 빨간 뉴스에 어떤 표시가 붙는지 확인
+# - 결과: .state/fj_net.jsonl, .state/fj_page.html, .state/fj_rows.txt
+# - 텔레그램 전송 안 함. 기존 릴레이에 영향 없음. 2~3분이면 끝남
 name: FJ WebSocket Probe
 
 on:
@@ -14,7 +14,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,20 +24,22 @@ jobs:
           pip install playwright || pip install --break-system-packages playwright
           python3 -m playwright install --with-deps chromium
 
-      - name: Capture browser websocket traffic (8 min)
+      - name: Capture network + DOM
         run: |
           mkdir -p .state
-          rm -f .state/fj_ws_sample.jsonl
-          python3 scripts/fj_ws_probe.py 480 2>&1 | tee .state/fj_ws_probe_log.txt
+          rm -f .state/fj_net.jsonl .state/fj_page.html .state/fj_rows.txt .state/fj_ws_sample.jsonl
+          python3 scripts/fj_ws_probe.py 120 2>&1 | tail -200 | tee .state/fj_ws_probe_log.txt
 
-      - name: Commit captured sample
+      - name: Commit captured data
         if: always()
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
-          [ -f .state/fj_ws_sample.jsonl ] && git add .state/fj_ws_sample.jsonl
-          [ -f .state/fj_ws_probe_log.txt ] && git add .state/fj_ws_probe_log.txt
-          git commit -m "fj websocket probe sample (v2 browser)" || echo "커밋할 변경사항 없음"
+          for f in .state/fj_net.jsonl .state/fj_page.html .state/fj_rows.txt .state/fj_ws_probe_log.txt; do
+            [ -f "$f" ] && git add "$f"
+          done
+          git add -u .state/fj_ws_sample.jsonl 2>/dev/null || true
+          git commit -m "fj probe v3 (network + dom)" || echo "커밋할 변경사항 없음"
           for i in 1 2 3 4 5; do
             if git push; then
               break
