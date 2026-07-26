@@ -1,78 +1,63 @@
-홈페이지 HTTP 200 | 길이 87301
-info 추출 성공 (길이 328): EAAAAHxTc0fKGisMmYmk1+sSOHh8VWyd0B2EXoezF9McUr30j4...
 
-API 호출 (tabID=0, oldID=0) -> HTTP 200 | 길이 145513
-뉴스 20건 수신
-Level 값 분포: {'news-general': 19, '': 1}
-Breaking 값 분포: {False: 20}
+========== CSS에서 빨간색 규칙 찾기 ==========
 
---- 최근 뉴스 8건 ---
-  [03:50 Jul 26] Breaking=False Level='news-general' Type='0' | Trump urges all Republican senators to end filibuster and approve Save America Act, budget
-  [00:24 Jul 26] Breaking=False Level='' Type='0' | Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports
-  [21:39 Jul 25] Breaking=False Level='news-general' Type='0' | One dead after car slams into crowd in Berlin: Bild, citing police
-  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: Centcom forces disabled Mozambique-flagged tanker Lavine in Gulf of Oman on
-  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: earlier Saturday, U.S. forces completed inspection boarding of Comoros-flag
-  [21:31 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: as of July 25, CENTCOM has diverted 12 commercial ships attempting to breac
-  [20:54 Jul 25] Breaking=False Level='news-general' Type='0' | Iran summons Ukraine's charge d'affaires over assault on Iranian commercial ship: Iran's s
-  [20:52 Jul 25] Breaking=False Level='news-general' Type='0' | Several injured after incident in Berlin: Berlin police in statement on X
+--- custom.css?v=2.8.9 (HTTP 200, 181346자) ---
+  .imp-1 {  color: red;  }
 
---- 첫 뉴스의 전체 필드 ---
-{"Tags": [], "STID": 0, "NewsID": 9693917, "Title": "Trump urges all Republican senators to end filibuster and approve Save America Act, budget, and debt ceiling", "TypeID": "0", "Description": "", "PostedShort": "03:50", "PostedLong": "03:50 Jul 26", "DatePublished": "2026-07-26T03:50:07.153", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9693917/Trump-urges-all-Republican-senators-to-end-filibuster-and-approve-Save-America-Act-budget-and-debt-ceiling.aspx", "HasE": false, "RURL": "", "EURLImg": "<img src=\"images/rss_0.gif\">", "STRID": 0, "RID": 0, "FCID": 0, "FCName": "", "FCNameURL": null, "StreamIDs": [], "TickerIDs": [], "Labels": [], "IID": ""}
+--- custom-dark.css?v=2.8.9 (HTTP 200, 11277자) ---
+info 추출 완료 (길이 328)
 
-API 호출 (tabID=1, oldID=0) -> HTTP 200 | 길이 148283
-뉴스 20건 수신
-Level 값 분포: {'news-general': 20}
-Breaking 값 분포: {False: 20}
+========== 알려진 빨간 뉴스 검색 ==========
 
---- 최근 뉴스 8건 ---
-  [13:15 Jul 25] Breaking=False Level='news-general' Type='0' | CFTC Report: A split tape; bearish FX conviction, selective covering and a crude reversal
-  [05:45 Jul 25] Breaking=False Level='news-general' Type='0' | World Foundation raises over $52M in token sale as World Network marks third anniversary
-  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Australian Dollar edges higher after mixed US PMIs
-  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Swiss Franc gains slightly against US Dollar as Oil prices ease
-  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Singapore Dollar: MAS stance supports relative resilience – MUFG
-  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Japanese Yen stays under pressure as resilient US economy supports the Dollar
-  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | British Pound rises as Oil slide softens USD, Fed hike bets increase
-  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | XRP trims gains as ETF interest fades
+검색어 'substantial tariff' -> 10건
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [18:15 Jul 24] Trump threatens EU with 'substantial TARIFF' for 'ROBBING' U.S. tech giants
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [18:00 Jul 24] Trump threatens EU with 'substantial TARIFF' for 'ROBBING' U.S. tech giants
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [17:17 Jul 24] The European Union is at it again and, as usual, taking direct aim at GREAT Amer
+  Breaking=False Level='active active-critical' Upd='' Type='0' STID=0 | [17:08 Jul 24] Trump: The Administration expects to impose a substantial tariff on the European
+  Breaking=False Level='active active-critical' Upd='' Type='0' STID=0 | [13:24 Nov 12] US Treasury Secretary Bessent: We will see substantial tariff news next couple d
+  (첫 결과 전체 필드) {"Tags": [], "STID": 1, "NewsID": 9692965, "Title": "Trump threatens EU with 'substantial TARIFF' for 'ROBBING' U.S. tech giants", "TypeID": "0", "Description": "Trump's Truth Social post railed against the European Union's new fine on Google, and prior penalties...", "PostedShort": "18:15", "PostedLong": "18:15 Jul 24", "DatePublished": "2026-07-24T18:15:25.27", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9692965/Trump-threatens-EU-with-substantial-TARIFF-for-ROBBING-US-tech-giants.aspx", "HasE": true, "RURL": "", "EURLImg": "<a href=\"https://www.financialjuice.com/News/9692965/Trump-threatens-EU-with-substantial-TARIFF-for-ROBBING-US-tech-giants.aspx\" target=\"_black\"><img src=\"images/rss_50.gif\"></a>", "STRID": 0, "RID": 50, "FCID": 11, "FCName": "CNBC", "FCNameURL": "CNBC", "StreamIDs": [
 
---- 첫 뉴스의 전체 필드 ---
-{"Tags": [], "STID": 1, "NewsID": 9693672, "Title": "CFTC Report: A split tape; bearish FX conviction, selective covering and a crude reversal", "TypeID": "0", "Description": "", "PostedShort": "13:15", "PostedLong": "13:15 Jul 25", "DatePublished": "2026-07-25T13:15:27.363", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9693672/CFTC-Report-A-split-tape-bearish-FX-conviction-selective-covering-and-a-crude-reversal.aspx", "HasE": true, "RURL": "", "EURLImg": "<a href=\"https://www.financialjuice.com/News/9693672/CFTC-Report-A-split-tape-bearish-FX-conviction-selective-covering-and-a-crude-reversal.aspx\" target=\"_black\"><img src=\"images/rss_1076.gif\"></a>", "STRID": 0, "RID": 1076, "FCID": 34, "FCName": "FXStreet", "FCNameURL": "FXStreet", "StreamIDs": [5, 1], "TickerIDs": [10853], "Labels": [], "IID": ""}
+검색어 'Section 301' -> 20건
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [18:30 Jul 24] "USA Isn't A PiggyBank For Europe": Trump Launches Section 301 Probe Into EU Ove
+  Breaking=False Level='' Upd='' Type='0' STID=0 | [17:07 Jul 24] Trump: The US will immediately initiate a Section 301 investigation into the Eur
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [16:15 Jul 24] Tariffs, Yet Again
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [14:00 Jul 24] Trump's Tariff Wall Returns With Forced-Labor Duties On 60 Countries 
+  Breaking=False Level='news-general' Upd='' Type='0' STID=0 | [21:07 Jul 23] U.S. official: new Section 301 duties start at 12:01 a.m. July 24
+  (첫 결과 전체 필드) {"Tags": [], "STID": 1, "NewsID": 9692990, "Title": "\"USA Isn't A PiggyBank For Europe\": Trump Launches Section 301 Probe Into EU Over Big Tech Fines", "TypeID": "0", "Description": "\"USA Isn't A PiggyBank For Europe\": Trump Launches Section 301 Probe Into EU Over Big Tech Fines\n\n  ...", "PostedShort": "18:30", "PostedLong": "18:30 Jul 24", "DatePublished": "2026-07-24T18:30:25.72", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9692990/USA-Isnt-A-PiggyBank-For-Europe-Trump-Launches-Section-301-Probe-Into-EU-Over-Big-Tech-Fines.aspx", "HasE": true, "RURL": "", "EURLImg": "<a href=\"https://www.financialjuice.com/News/9692990/USA-Isnt-A-PiggyBank-For-Europe-Trump-Launches-Section-301-Probe-Into-EU-Over-Big-Tech-Fines.aspx\" target=\"_black\"><img src=\"images/rss_56.gif\"></a>", "STRID": 0, "RID
 
-API 호출 (tabID=2, oldID=0) -> HTTP 200 | 길이 148928
-뉴스 20건 수신
-Level 값 분포: {'': 14, 'news-general': 6}
-Breaking 값 분포: {False: 20}
+검색어 'pay a very big price' -> 9건
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [17:17 Jul 24] The European Union is at it again and, as usual, taking direct aim at GREAT Amer
+  Breaking=False Level='' Upd='' Type='0' STID=0 | [17:08 Jul 24] Trump: The EU will "pay a very big price" for what he described as illegal and u
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [15:01 Jan 05] Trump Warns Venezuela’s New Leaders to Cooperate or “Pay a Very Big Price”
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [22:02 Jan 04] FirstFT: Trump warns Venezuela’s new leader to meet US demands or pay ‘a very bi
+  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [21:03 Jan 04] Donald Trump warns Venezuelan rulers as Washington prepares to dictate policy
+  (첫 결과 전체 필드) {"Tags": [], "STID": 1, "NewsID": 9692912, "Title": "The European Union is at it again and, as usual, taking direct aim at GREAT American Companies! After having fined Apple, for no reason at all, 15 Billion Dollars, Meta, 3 Billion Dollars, Amazon 2.5 Billion Dollars, and many others, we have just been informed that Google, a truly advanced and amazing group, has been fined yet another 1 Billion Dollars, without explanation. This brings the Google total to over 18 Billion Dollars! This illegal and highly discriminatory practice started at these high levels during the first year of the Sleepy Joe Biden Administration, but it’s not going to continue during the Trump Administration. The United States of America is not a “PIGGYBANK” for Europe, nor will we allow it to be! Please let this TRUTH serve to represent that we will immediately initiate a 301 Investigation into the practice of “ROB
 
---- 최근 뉴스 8건 ---
-  [00:24 Jul 26] Breaking=False Level='' Type='0' | Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports
-  [21:01 Jul 25] Breaking=False Level='news-general' Type='0' | Can an AI Black Box Be Trusted to Run a Nuclear Reactor?
-  [19:01 Jul 25] Breaking=False Level='news-general' Type='0' | The Carbon Capture Boom Is Starting to Crack
-  [17:01 Jul 25] Breaking=False Level='news-general' Type='0' | UCLA Scientists Turn Plastic Waste Into Pure Hydrogen Fuel
-  [15:01 Jul 25] Breaking=False Level='news-general' Type='0' | EU Backs Off Methane Rules as Energy Security Fears Mount
-  [23:01 Jul 24] Breaking=False Level='news-general' Type='0' | The Strait of Hormuz Closure Is Already Hitting Supermarket Prices
-  [20:57 Jul 24] Breaking=False Level='' Type='0' | Saudi-Led Coalition: Targeted Houthi military sites in Yemen's hodeidah governorate – Saud
-  [20:25 Jul 24] Breaking=False Level='' Type='0' | Houthi-Affiliated al Masirah TV: Saudi strikes attack Yemen's Kamaran Island.
+========== 과거 뉴스 훑기 (Breaking/Level 통계) ==========
+  ...1페이지 (누적 20건, oldID=9693744)
+  ...6페이지 (누적 120건, oldID=9693012)
+  ...11페이지 (누적 220건, oldID=9692479)
+  ...16페이지 (누적 320건, oldID=9691894)
+  ...21페이지 (누적 420건, oldID=9691228)
 
---- 첫 뉴스의 전체 필드 ---
-{"Tags": [], "STID": 0, "NewsID": 9693843, "Title": "Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports US in war - State TV", "TypeID": "0", "Description": "", "PostedShort": "00:24", "PostedLong": "00:24 Jul 26", "DatePublished": "2026-07-26T00:24:47.637", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "", "EURL": "https://www.financialjuice.com/News/9693843/Irans-IRGC-Spokesperson-Britain-would-be-a-definite-and-legitimate-target-if-it-supports-US-in-war---State-TV.aspx", "HasE": false, "RURL": "", "EURLImg": "<img src=\"images/rss_0.gif\">", "STRID": 0, "RID": 0, "FCID": 0, "FCName": "", "FCNameURL": null, "StreamIDs": [2, 5, 3, 9, 5], "TickerIDs": [6917], "Labels": ["Energy", "GBP", "UK", "US Bonds", "US Indexes", "USD"], "IID": "b5da5c25-0352-4e75-a02a-43092595b74c"}
-
-===== info 재사용 테스트 =====
-
-API 호출 (tabID=0, oldID=0) -> HTTP 200 | 길이 145513
-뉴스 20건 수신
-Level 값 분포: {'news-general': 19, '': 1}
-Breaking 값 분포: {False: 20}
-
---- 최근 뉴스 8건 ---
-  [03:50 Jul 26] Breaking=False Level='news-general' Type='0' | Trump urges all Republican senators to end filibuster and approve Save America Act, budget
-  [00:24 Jul 26] Breaking=False Level='' Type='0' | Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports
-  [21:39 Jul 25] Breaking=False Level='news-general' Type='0' | One dead after car slams into crowd in Berlin: Bild, citing police
-  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: Centcom forces disabled Mozambique-flagged tanker Lavine in Gulf of Oman on
-  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: earlier Saturday, U.S. forces completed inspection boarding of Comoros-flag
-  [21:31 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: as of July 25, CENTCOM has diverted 12 commercial ships attempting to breac
-  [20:54 Jul 25] Breaking=False Level='news-general' Type='0' | Iran summons Ukraine's charge d'affaires over assault on Iranian commercial ship: Iran's s
-  [20:52 Jul 25] Breaking=False Level='news-general' Type='0' | Several injured after incident in Berlin: Berlin police in statement on X
-
---- 첫 뉴스의 전체 필드 ---
-{"Tags": [], "STID": 0, "NewsID": 9693917, "Title": "Trump urges all Republican senators to end filibuster and approve Save America Act, budget, and debt ceiling", "TypeID": "0", "Description": "", "PostedShort": "03:50", "PostedLong": "03:50 Jul 26", "DatePublished": "2026-07-26T03:50:07.153", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9693917/Trump-urges-all-Republican-senators-to-end-filibuster-and-approve-Save-America-Act-budget-and-debt-ceiling.aspx", "HasE": false, "RURL": "", "EURLImg": "<img src=\"images/rss_0.gif\">", "STRID": 0, "RID": 0, "FCID": 0, "FCName": "", "FCNameURL": null, "StreamIDs": [], "TickerIDs": [], "Labels": [], "IID": ""}
+총 500건 확인
+Level 분포: {'news-general': 194, '': 282, 'active active-critical': 16, 'active': 8}
+Breaking 분포: {False: 500}
+특이 항목 24건
+  Breaking=False Level='active active-critical' | [17:08 Jul 24] Trump: The Administration expects to impose a substantial tariff on the European
+  Breaking=False Level='active active-critical' | [16:31 Jul 24] Bahrain and Kuwait warplanes struck Iran in a rare Gulf retaliation - WSJ.
+  Breaking=False Level='active' | [15:15 Jul 24] Trump: China's Xi & Putin said that they wouldn't sell arms to Iran - Truth Soci
+  Breaking=False Level='active' | [15:10 Jul 24] Pakistan and Iran explore a path towards new talks with the US in a China-initia
+  Breaking=False Level='active' | [15:10 Jul 24] Pakistan and Iran explore a path towards new talks with the US in a China-initia
+  Breaking=False Level='active active-critical' | [13:45 Jul 24] US S&P Services PMI Flash Actual 53.6 (Forecast 51.5, Previous 51.2)
+  Breaking=False Level='active active-critical' | [13:45 Jul 24] US S&P Manufacturing PMI Flash Actual 53.8 (Forecast 54.4, Previous 53.9)
+  Breaking=False Level='active active-critical' | [13:45 Jul 24] US S&P Manufacturing PMI Flash Actual 53.8 (Forecast 54.4, Previous 53.9)
+  Breaking=False Level='active active-critical' | [12:45 Jul 24] Head of the Yemeni National Negotiating Delegation Al-Salmi: Contrary to some cl
+  Breaking=False Level='active active-critical' | [08:30 Jul 24] UK Manufacturing PMI Flash Actual 52.8 (Forecast 52, Previous 52.5)
+  Breaking=False Level='active active-critical' | [08:30 Jul 24] UK Composite PMI Flash Actual 52.1 (Forecast 49.8, Previous 49.3)
+  Breaking=False Level='active' | [08:30 Jul 24] UK Services PMI Flash Actual 51.8 (Forecast 49.4, Previous 48.8)
+  Breaking=False Level='active active-critical' | [08:00 Jul 24] Eurozone Manufacturing PMI Flash Actual 52 (Forecast 51.5, Previous 51.4)
+  Breaking=False Level='active' | [07:30 Jul 24] German Manufacturing PMI Flash Actual 52.2 (Forecast 50.5, Previous 50.3)
+  Breaking=False Level='active active-critical' | [07:30 Jul 24] German Composite PMI Flash Actual 51.2 (Forecast 49.7, Previous 49.5)
 
 탐사 종료
