@@ -9,6 +9,7 @@ import json
 import os
 import re
 import time
+import urllib.error
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone
@@ -18,11 +19,14 @@ API_URL = "https://live.financialjuice.com/FJService.asmx/Startup"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
+CHAT_ID = "@haesunking"
+
 STATE_DIR = ".state"
 LAST_ID_FILE = os.path.join(STATE_DIR, "fj_last_newsid.txt")
 HEARTBEAT_FILE = os.path.join(STATE_DIR, "fj_heartbeat.txt")
 SENT_TITLES_FILE = os.path.join(STATE_DIR, "fj_sent_titles.json")
 INFO_CACHE_FILE = os.path.join(STATE_DIR, "fj_info_cache.txt")  # 커밋 안 함(임시 캐시)
+FAIL_FILE = os.path.join(STATE_DIR, "fj_fail.json")             # 커밋 안 함(장애 감시용)
 
 SENT_TITLES_TTL_SECONDS = 24 * 3600   # 같은 제목은 24시간 안에는 다시 안 보냄
 SENT_TITLES_MAX = 500                 # 상태 파일이 무한정 커지지 않도록 제한
@@ -32,11 +36,25 @@ INFO_TTL_SECONDS = 900                # info 값은 15분마다 새로 받아옴
 # 그래서 마지막으로 보낸 뉴스에 닿을 때까지 과거 페이지를 되짚어 채워넣음(최대 10페이지 = 200건).
 MAX_BACKFILL_PAGES = 10
 # 한 주기에 보내는 최대 건수. 넘치면 나머지는 다음 주기에 이어서 보냄(누락 없음).
-MAX_PER_CYCLE = 25
+MAX_PER_CYCLE = 18
+
+# 텔레그램은 한 채널에 분당 20건까지만 허용함. 3.5초 간격이면 분당 17건이라 안전 마진이 생김.
+# (주기가 연달아 붙을 때 순간적으로 20건을 넘기지 않도록 딱 3.0초가 아니라 여유를 둠)
+SEND_INTERVAL_SECONDS = 3.5
+# 텔레그램 메시지는 4096자 제한. 트럼프 게시글 전문처럼 1000자 넘는 제목이 실제로 들어오는데,
+# 번역문까지 붙으면 제한을 넘겨서 그 뉴스가 통째로 거부당함. 그래서 제목을 잘라서 보냄.
+MAX_TITLE_CHARS = 1200
+# 뉴스를 이 시간 이상 계속 못 가져오면 텔레그램으로 장애 알림을 한 번 보냄
+FAIL_ALERT_AFTER_SECONDS = 300
 
 
 def normalize_title(text):
     return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def clip(text, limit=MAX_TITLE_CHARS):
+    text = (text or "").strip()
+    return text if len(text) <= limit else text[:limit - 1] + "…"
 
 
 # 사이트가 빨간색으로 강조하는 뉴스의 표식.
@@ -156,7 +174,8 @@ def load_sent_titles():
     if not os.path.exists(SENT_TITLES_FILE):
         return {}
     try:
-        data = json.load(open(SENT_TITLES_FILE))
+        with open(SENT_TITLES_FILE) as f:
+            data = json.load(f)
         return data if isinstance(data, dict) else {}
     except Exception:
         return {}
@@ -207,6 +226,92 @@ def translate_to_ko(text):
     return None
 
 
+def send_telegram(bot_token, chat_id, msg, max_retry=2):
+    """텔레그램 전송. (성공여부, 영구실패여부) 를 돌려줌.
+    - 429(분당 20건 속도 제한)를 맞으면 서버가 알려준 시간만큼 쉬었다가 재시도
+    - 400번대(메시지 길이 초과 등)는 재시도해도 소용없으므로 영구실패로 표시하고 건너뜀
+    - 그 외(네트워크/서버 오류)는 일시적 실패로 보고, 호출한 쪽에서 다음 주기에 재시도"""
+    data = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
+    url = "https://api.telegram.org/bot%s/sendMessage" % bot_token
+
+    for _ in range(max_retry + 1):
+        try:
+            req = urllib.request.Request(url, data=data)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                r.read()
+            return True, False
+        except urllib.error.HTTPError as e:
+            body = ""
+            try:
+                body = e.read().decode("utf-8", "replace")[:300]
+            except Exception:
+                pass
+            if e.code == 429:
+                wait = 5
+                try:
+                    wait = int(json.loads(body)["parameters"]["retry_after"])
+                except Exception:
+                    pass
+                print("텔레그램 속도 제한, %d초 대기 후 재시도" % wait)
+                time.sleep(min(wait + 1, 60))
+                continue
+            if 400 <= e.code < 500:
+                print("텔레그램이 거부함(%s): %s" % (e.code, body))
+                return False, True
+            print("텔레그램 서버 오류(%s), 재시도" % e.code)
+            time.sleep(2)
+        except Exception as e:
+            print("텔레그램 전송 오류:", e)
+            time.sleep(2)
+    return False, False
+
+
+# ---- 장애 감시: 뉴스를 계속 못 가져오면 텔레그램으로 한 번 알려주고, 복구되면 알려줌 ----
+def load_fail():
+    try:
+        with open(FAIL_FILE) as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_fail(state):
+    try:
+        with open(FAIL_FILE, "w") as f:
+            json.dump(state, f)
+    except Exception:
+        pass
+
+
+def note_failure(err):
+    st = load_fail()
+    now = int(time.time())
+    st.setdefault("since", now)
+    st["last_error"] = str(err)[:200]
+    st["count"] = st.get("count", 0) + 1
+
+    if not st.get("alerted") and now - st["since"] >= FAIL_ALERT_AFTER_SECONDS:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if token:
+            send_telegram(token, CHAT_ID,
+                          "⚠️ 뉴스 릴레이 오류\n%d분째 뉴스를 가져오지 못하고 있습니다.\n원인: %s"
+                          % ((now - st["since"]) // 60, st["last_error"]))
+        st["alerted"] = True
+    save_fail(st)
+
+
+def note_success():
+    st = load_fail()
+    if not st:
+        return
+    if st.get("alerted"):
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if token:
+            send_telegram(token, CHAT_ID, "✅ 뉴스 릴레이 정상화")
+    save_fail({})
+
+
 def news_id_of(n):
     try:
         return int(n.get("NewsID") or 0)
@@ -238,14 +343,6 @@ def collect_items(info, last_id, do_backfill):
     return list(by_id.values())
 
 
-def send_telegram(bot_token, chat_id, msg):
-    body = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
-    req = urllib.request.Request(
-        "https://api.telegram.org/bot%s/sendMessage" % bot_token, data=body)
-    with urllib.request.urlopen(req, timeout=15) as r:
-        return r.read().decode()[:150]
-
-
 def main():
     os.makedirs(STATE_DIR, exist_ok=True)
 
@@ -255,8 +352,7 @@ def main():
 
     items = collect_items(info, last_id, do_backfill=not first_run)
     if not items:
-        print("뉴스 응답이 비어 있음")
-        return
+        raise RuntimeError("뉴스 응답이 비어 있음")
 
     items = [n for n in items if news_id_of(n) > 0]
     items.sort(key=news_id_of)                 # 오래된 것 -> 최신
@@ -280,7 +376,6 @@ def main():
     # 한 주기 상한을 넘으면 오래된 것부터 처리하고, 기준점도 처리한 데까지만 올림.
     # (나머지는 다음 주기에 그대로 이어서 나가므로 누락되지 않음)
     batch = candidates[:MAX_PER_CYCLE]
-    new_last = news_id_of(batch[-1])
     if len(candidates) > len(batch):
         print("이번 주기 %d건 처리, %d건은 다음 주기로" % (len(batch), len(candidates) - len(batch)))
 
@@ -289,7 +384,7 @@ def main():
 
     to_send = []
     for n in batch:
-        title = (n.get("Title") or "").strip()
+        title = clip(n.get("Title"))
         if not title:
             continue
         key = normalize_title(title)
@@ -299,6 +394,8 @@ def main():
         if is_noise(title):
             continue
         to_send.append({
+            "nid": news_id_of(n),
+            "key": key,
             "title": title,
             "epoch": parse_epoch(n.get("DatePublished")),
             "critical": is_critical(n.get("Level")),
@@ -307,34 +404,56 @@ def main():
     if not to_send:
         print("새 속보 없음 (전부 이미 보냈거나 걸러짐)")
         save_sent_titles(sent_titles, now_epoch)
-        write_last_id(new_last)
+        write_last_id(news_id_of(batch[-1]))
         return
 
     bot_token = os.environ["TELEGRAM_BOT_TOKEN"]
-    chat_id = "@haesunking"
 
-    for item in to_send:
+    # 전송에 실패하면 기준점을 그 앞에서 멈춰서, 다음 주기에 그 뉴스부터 다시 시도함(유실 방지)
+    last_ok_nid = last_id
+    sent_count = 0
+
+    for idx, item in enumerate(to_send):
         title = item["title"]
         translated = translate_to_ko(title)
         kst_time = time.strftime("%H:%M", time.gmtime(item["epoch"] + 9 * 3600))
         prefix = "\U0001F6A8 " if item["critical"] else ""
 
         if translated and translated.lower() != title.lower():
-            msg = "%s%s\n(원문: %s)\n(%s)" % (prefix, translated, title, kst_time)
+            msg = "%s%s\n(원문: %s)\n(%s)" % (prefix, clip(translated), title, kst_time)
         else:
             msg = "%s%s\n(%s)" % (prefix, title, kst_time)
 
-        try:
-            print("전송%s:" % (" [중요]" if item["critical"] else ""),
-                  send_telegram(bot_token, chat_id, msg))
-        except Exception as e:
-            print("전송 실패:", e)
-        time.sleep(1)
+        ok, permanent = send_telegram(bot_token, CHAT_ID, msg)
+        if ok:
+            sent_count += 1
+            last_ok_nid = item["nid"]
+            print("전송%s 완료" % (" [중요]" if item["critical"] else ""))
+        elif permanent:
+            # 이 메시지 자체가 문제라 다시 보내도 안 됨 -> 건너뛰고 진행
+            print("건너뜀:", title[:60])
+            last_ok_nid = item["nid"]
+        else:
+            # 일시적 실패 -> 여기서 멈추고, 아직 못 보낸 것들은 기록에서 지워 다음 주기에 재시도
+            for rest in to_send[idx:]:
+                sent_titles.pop(rest["key"], None)
+            print("일시적 전송 실패, 다음 주기에 이어서 재시도")
+            break
+
+        # 마지막 메시지 뒤에는 쉬지 않음 (뉴스가 1건일 때 괜히 기다리지 않도록)
+        if idx < len(to_send) - 1:
+            time.sleep(SEND_INTERVAL_SECONDS)
 
     save_sent_titles(sent_titles, now_epoch)
-    write_last_id(new_last)
-    print("새 속보 %s건 전송 완료, 기준 NewsID 갱신: %s" % (len(to_send), new_last))
+    write_last_id(last_ok_nid)
+    print("%s건 전송 완료, 기준 NewsID: %s" % (sent_count, last_ok_nid))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        note_success()
+    except Exception as e:
+        print("실행 오류:", repr(e)[:300])
+        note_failure(e)
+        raise SystemExit(1)
