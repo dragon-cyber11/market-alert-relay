@@ -320,7 +320,7 @@ def main():
         prefix = "\U0001F6A8 " if item["critical"] else ""
 
         if translated and translated.lower() != title.lower():
-            msg = "%s%s\n(EN: %s)\n(%s)" % (prefix, translated, title, kst_time)
+            msg = "%s%s\n(원문: %s)\n(%s)" % (prefix, translated, title, kst_time)
         else:
             msg = "%s%s\n(%s)" % (prefix, title, kst_time)
 
