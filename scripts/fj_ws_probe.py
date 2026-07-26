@@ -1,126 +1,81 @@
-# FinancialJuice 웹소켓(SignalR) 탐사용 스크립트
-# - 사이트가 실제로 쓰는 실시간 웹소켓에 익명으로 접속해서
-#   지정한 시간 동안 들어오는 뉴스 메시지를 전부 .state/fj_ws_sample.jsonl 에 기록함
-# - 여기서 Breaking / Level 필드가 실제로 어떻게 오는지 확인한 뒤,
-#   본 릴레이를 RSS -> 웹소켓 방식으로 바꿀지 결정하는 용도 (텔레그램 전송 안 함)
+# FinancialJuice 웹소켓 탐사 v2 (브라우저 방식)
+# - 헤드리스 크롬으로 financialjuice.com/home 을 실제로 열고,
+#   브라우저가 웹소켓으로 주고받는 모든 데이터(접속 주소 포함)를 기록함
+# - 브라우저가 서버에 뭘 보내는지 알아내서, 그걸 파이썬으로 그대로 재현하기 위한 용도
+# - 텔레그램 전송 안 함. 결과는 .state/fj_ws_sample.jsonl 에 기록
 import json
 import os
-import ssl
 import sys
 import time
-import urllib.request
-import urllib.parse
 
-CAPTURE_SECONDS = int(sys.argv[1]) if len(sys.argv) > 1 else 600  # 기본 10분
+CAPTURE_SECONDS = int(sys.argv[1]) if len(sys.argv) > 1 else 480  # 기본 8분
 OUT_FILE = ".state/fj_ws_sample.jsonl"
-
-CONNECTION_DATA = json.dumps([{"name": "newshub"}])
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+MAX_FRAME_CHARS = 20000  # 너무 큰 프레임은 앞부분만 기록
 
 
 def log(*a):
     print(*a, flush=True)
 
 
-def http_get_json(url, headers=None):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
-    with urllib.request.urlopen(req, timeout=20) as resp:
-        return json.loads(resp.read().decode())
-
-
-def short(d):
-    # 로그용: 긴 토큰 값은 앞부분만 표시
-    return {k: (v[:40] + "..." if isinstance(v, str) and len(v) > 40 else v) for k, v in d.items()}
-
-
 def main():
     os.makedirs(".state", exist_ok=True)
+    from playwright.sync_api import sync_playwright
 
-    # 1단계: financialjuice.com 에서 negotiate -> Azure SignalR 리다이렉트 정보 + 토큰 받기
-    qs = urllib.parse.urlencode({"clientProtocol": "1.5", "connectionData": CONNECTION_DATA})
-    neg1 = http_get_json("https://www.financialjuice.com/signalr/negotiate?" + qs)
-    log("negotiate(1):", short(neg1))
+    out = open(OUT_FILE, "a", encoding="utf-8")
 
-    redirect_url = neg1.get("RedirectUrl")
-    access_token = neg1.get("AccessToken")
-    if redirect_url:
-        auth_headers = {"Authorization": "Bearer " + access_token}
-        # 2단계: Azure SignalR 쪽에서 다시 negotiate -> ConnectionToken 받기
-        neg2 = http_get_json(redirect_url + "/negotiate?" + qs, headers=auth_headers)
-    else:
-        # 리다이렉트가 없으면 자체 서버에 바로 붙는 구형 구조
-        redirect_url = "https://www.financialjuice.com/signalr"
-        access_token = None
-        auth_headers = {}
-        neg2 = neg1
-    log("negotiate(2):", short(neg2))
+    def rec(kind, data):
+        text = data if isinstance(data, str) else repr(data)
+        if len(text) > MAX_FRAME_CHARS:
+            text = text[:MAX_FRAME_CHARS] + "...(잘림)"
+        out.write(json.dumps({
+            "t": time.strftime("%H:%M:%S", time.gmtime()),
+            "kind": kind,
+            "data": text,
+        }, ensure_ascii=False) + "\n")
+        out.flush()
+        log("[%s] %s" % (kind, text[:200]))
 
-    conn_token = neg2["ConnectionToken"]
+    def payload_of(x):
+        # playwright 버전에 따라 payload가 dict로 오기도 해서 둘 다 처리
+        if isinstance(x, dict):
+            return x.get("payload", "")
+        return x
 
-    # 3단계: 웹소켓 접속
-    import websocket  # websocket-client (워크플로에서 pip 설치)
+    def on_ws(ws):
+        rec("ws_open", ws.url)
+        ws.on("framesent", lambda p: rec("sent", payload_of(p)))
+        ws.on("framereceived", lambda p: (
+            None if payload_of(p) in ("{}", "") else rec("recv", payload_of(p))
+        ))
+        ws.on("close", lambda w=None: rec("ws_close", ws.url))
 
-    ws_base = redirect_url.replace("https://", "wss://").replace("http://", "ws://")
-    ws_params = {
-        "transport": "webSockets",
-        "clientProtocol": "1.5",
-        "connectionToken": conn_token,
-        "connectionData": CONNECTION_DATA,
-        "tid": "7",
-    }
-    if access_token:
-        # 헤더를 못 쓰는 클라이언트를 위해 쿼리로도 토큰을 받는 서버가 많아서 둘 다 넣음
-        ws_params["access_token"] = access_token
-    ws_url = ws_base + "/connect?" + urllib.parse.urlencode(ws_params)
-    log("connecting:", ws_url[:80] + "...")
+    rec("probe_started", "v2 browser probe, capture %ds" % CAPTURE_SECONDS)
 
-    header = ["Authorization: Bearer " + access_token] if access_token else []
-    ws = websocket.create_connection(
-        ws_url, header=header, timeout=30,
-        sslopt={"cert_reqs": ssl.CERT_REQUIRED},
-        origin="https://www.financialjuice.com",
-    )
-    log("웹소켓 연결 성공")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(args=["--no-sandbox"])
+        page = browser.new_page(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+        )
+        page.on("websocket", on_ws)
 
-    # 4단계: start 호출 (SignalR 핸드셰이크 마무리, 실패해도 수신은 되는 경우가 많음)
-    try:
-        start_qs = urllib.parse.urlencode({
-            "transport": "webSockets",
-            "clientProtocol": "1.5",
-            "connectionToken": conn_token,
-            "connectionData": CONNECTION_DATA,
-        })
-        start = http_get_json(redirect_url + "/start?" + start_qs, headers=auth_headers)
-        log("start:", start)
-    except Exception as e:
-        log("start 호출 실패(치명적이지 않을 수 있음):", e)
+        log("페이지 로딩 중...")
+        page.goto("https://www.financialjuice.com/home", timeout=90000, wait_until="domcontentloaded")
+        log("페이지 로딩 완료, %d초 동안 웹소켓 데이터 수집" % CAPTURE_SECONDS)
 
-    # 5단계: 수신 루프 - 들어오는 메시지를 전부 기록
-    end = time.time() + CAPTURE_SECONDS
-    count = 0
-    with open(OUT_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps({"_probe_started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}) + "\n")
-        f.flush()
-        while time.time() < end:
-            try:
-                ws.settimeout(min(30, max(1, end - time.time())))
-                raw = ws.recv()
-            except websocket.WebSocketTimeoutException:
-                continue
-            except Exception as e:
-                log("수신 오류, 5초 후 계속:", e)
-                time.sleep(5)
-                continue
-            if not raw or raw == "{}":
-                continue  # keep-alive 는 기록 안 함
-            count += 1
-            text = raw if isinstance(raw, str) else raw.decode("utf-8", "replace")
-            f.write(text + "\n")
-            f.flush()
-            log("메시지 수신 #%d (길이 %d): %s" % (count, len(text), text[:300]))
+        # 수집 시간 동안 대기 (그동안 이벤트 핸들러가 알아서 기록)
+        remaining = CAPTURE_SECONDS
+        while remaining > 0:
+            step = min(30, remaining)
+            page.wait_for_timeout(step * 1000)
+            remaining -= step
+            log("... 수집 중 (남은 시간 %d초)" % remaining)
 
-    ws.close()
-    log("수집 종료: 총 %d개 메시지를 %s 에 기록" % (count, OUT_FILE))
+        browser.close()
+
+    rec("probe_finished", "done")
+    out.close()
+    log("수집 종료")
 
 
 if __name__ == "__main__":
