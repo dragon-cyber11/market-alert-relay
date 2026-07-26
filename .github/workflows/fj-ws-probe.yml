@@ -1,0 +1,45 @@
+# 저장 위치: .github/workflows/fj-ws-probe.yml
+# FinancialJuice 웹소켓 탐사 (일회성 테스트, 수동 실행 전용)
+# - 10분 동안 웹소켓으로 들어오는 뉴스 원본 데이터를 수집해서
+#   .state/fj_ws_sample.jsonl (수신 데이터) + .state/fj_ws_probe_log.txt (실행 로그) 로 커밋
+# - 텔레그램 전송은 하지 않음. 기존 릴레이에 영향 없음
+name: FJ WebSocket Probe
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install websocket-client
+        run: pip install websocket-client || pip install --break-system-packages websocket-client
+
+      - name: Capture websocket messages (10 min)
+        run: |
+          mkdir -p .state
+          python3 scripts/fj_ws_probe.py 600 2>&1 | tee .state/fj_ws_probe_log.txt
+
+      - name: Commit captured sample
+        if: always()
+        run: |
+          git config user.name "relay-bot"
+          git config user.email "relay-bot@users.noreply.github.com"
+          [ -f .state/fj_ws_sample.jsonl ] && git add .state/fj_ws_sample.jsonl
+          [ -f .state/fj_ws_probe_log.txt ] && git add .state/fj_ws_probe_log.txt
+          git commit -m "fj websocket probe sample" || echo "커밋할 변경사항 없음"
+          for i in 1 2 3 4 5; do
+            if git push; then
+              break
+            fi
+            git fetch origin main
+            git rebase origin/main || git rebase --abort
+            sleep 2
+          done
