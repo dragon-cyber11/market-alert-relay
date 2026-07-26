@@ -248,5 +248,3 @@ fj.js 길이: 747005
 "),null,null);}}}}});$('body')['on']('click','.feeds-list\\x20li\\x20a\\x20.button-settings',function(_0x59b2c5){var _0x1689d5={'qWAFZ':function(_0x155979,_0x572137){return _0x155979+_0x572137;},'jsHiX':'news-settings.aspx'};window['location'][_0x24f7('0x280')]=_0x1689d5[_0x24f7('0xb78')](devSite,_0x1689d5[_0x24f7('0xb79')]);_0x59b2c5[_0x24f7('0x93e')]();_0x59b2c5[_0x24f7('0x93f')]();});$(_0x24f7('0x55'))['on'](_0x24f7('0x4e'),'.feeds-list\\x20li\\x20a"
 
 --- 'info=' 0곳 ---
-
-탐사 종료
