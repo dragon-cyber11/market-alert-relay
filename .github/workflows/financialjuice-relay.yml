@@ -3,18 +3,19 @@
 #   2) scripts/financialjuice_relay.py              (같이 드린 파이썬 파일, 경로 그대로 scripts 폴더 아래)
 #
 # 하는 일:
-#   - 잡(job)이 시작되면 약 5시간 50분 동안 "30초마다 새 속보 확인 -> 있으면 텔레그램 전송"을
-#     계속 반복하는 방식으로 동작 (5분 대기하는 방식보다 훨씬 촘촘함)
+#   - 잡(job)이 시작되면 약 5시간 50분 동안 "15초마다 새 속보 확인 -> 있으면 텔레그램 전송"을
+#     계속 반복하는 방식으로 동작
 #   - GitHub Actions는 잡 하나를 무한정 돌릴 수는 없어서(호스팅 러너 최대 6시간),
 #     6시간마다 예약(cron)이 새 잡을 띄워서 이어받는 구조. 겹치는 순간에는 concurrency 설정으로
 #     이전 잡이 끝날 때까지 잠깐 대기했다가 바로 이어서 시작함 (거의 끊김 없이 계속 돔)
-#   - 진행 중 상태(마지막으로 보낸 시각, 중복 방지 기록)는 5분에 한 번씩 저장소에 커밋해서,
-#     잡이 도중에 죽어도 최근 상태를 잃지 않게 함
+#   - 진행 중 상태(마지막으로 보낸 뉴스 번호)는 10분에 한 번씩 저장소에 커밋해서, 잡이 도중에
+#     죽어도 최근 상태를 잃지 않게 함
 #
 # 참고: 이 워크플로를 처음 추가하고 실행하면 "초기화"만 하고 아무것도 보내지 않습니다.
 #
 # 필요한 저장소 secret (이미 있음, 추가 설정 불필요):
 #   - TELEGRAM_BOT_TOKEN
+# (번역은 가입/키 필요 없는 비공식 구글 번역 엔드포인트를 사용함)
 
 name: FinancialJuice RSS to Telegram
 
@@ -54,9 +55,10 @@ jobs:
 
             CYCLE=$((CYCLE + 1))
 
-            # 10주기(약 5분)마다 상태를 저장소에 커밋 (매 주기마다 커밋하면 너무 잦음)
-            if [ $((CYCLE % 10)) -eq 0 ]; then
-              git add .state/fj_last_epoch.txt .state/fj_heartbeat.txt .state/fj_sent_titles.json 2>/dev/null || true
+            # 40주기(15초 x 40 = 약 10분)마다 상태를 저장소에 커밋
+            # (더 자주 하면 저장소에 커밋만 수만 개 쌓여서 나중에 무거워짐)
+            if [ $((CYCLE % 40)) -eq 0 ]; then
+              git add .state/fj_last_newsid.txt .state/fj_heartbeat.txt .state/fj_sent_titles.json 2>/dev/null || true
               if ! git diff --cached --quiet; then
                 git commit -q -m "financialjuice heartbeat + state update"
                 for i in 1 2 3; do
@@ -70,7 +72,7 @@ jobs:
               fi
             fi
 
-            sleep 30
+            sleep 15
           done
 
           echo "이번 잡의 실행 시간 한도(약 5시간 50분)에 도달, 종료 (다음 예약 잡이 바로 이어받음)"
@@ -80,7 +82,7 @@ jobs:
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
-          [ -f .state/fj_last_epoch.txt ] && git add .state/fj_last_epoch.txt
+          [ -f .state/fj_last_newsid.txt ] && git add .state/fj_last_newsid.txt
           [ -f .state/fj_heartbeat.txt ] && git add .state/fj_heartbeat.txt
           [ -f .state/fj_sent_titles.json ] && git add .state/fj_sent_titles.json
           git commit -m "financialjuice heartbeat + state update (final)" || echo "커밋할 변경사항 없음"
