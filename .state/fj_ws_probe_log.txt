@@ -1,66 +1,78 @@
+홈페이지 HTTP 200 | 길이 87301
+info 추출 성공 (길이 328): EAAAAHxTc0fKGisMmYmk1+sSOHh8VWyd0B2EXoezF9McUr30j4...
 
-===== Startup 시그니처 =====
-문서에서 찾은 파라미터 후보: ['class']
+API 호출 (tabID=0, oldID=0) -> HTTP 200 | 길이 145513
+뉴스 20건 수신
+Level 값 분포: {'news-general': 19, '': 1}
+Breaking 값 분포: {False: 20}
 
-===== GetPreviousNews 시그니처 =====
-문서에서 찾은 파라미터 후보: ['class']
+--- 최근 뉴스 8건 ---
+  [03:50 Jul 26] Breaking=False Level='news-general' Type='0' | Trump urges all Republican senators to end filibuster and approve Save America Act, budget
+  [00:24 Jul 26] Breaking=False Level='' Type='0' | Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports
+  [21:39 Jul 25] Breaking=False Level='news-general' Type='0' | One dead after car slams into crowd in Berlin: Bild, citing police
+  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: Centcom forces disabled Mozambique-flagged tanker Lavine in Gulf of Oman on
+  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: earlier Saturday, U.S. forces completed inspection boarding of Comoros-flag
+  [21:31 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: as of July 25, CENTCOM has diverted 12 commercial ships attempting to breac
+  [20:54 Jul 25] Breaking=False Level='news-general' Type='0' | Iran summons Ukraine's charge d'affaires over assault on Iranian commercial ship: Iran's s
+  [20:52 Jul 25] Breaking=False Level='news-general' Type='0' | Several injured after incident in Berlin: Berlin police in statement on X
 
-===== GetNewsSummary 시그니처 =====
-문서에서 찾은 파라미터 후보: ['class']
+--- 첫 뉴스의 전체 필드 ---
+{"Tags": [], "STID": 0, "NewsID": 9693917, "Title": "Trump urges all Republican senators to end filibuster and approve Save America Act, budget, and debt ceiling", "TypeID": "0", "Description": "", "PostedShort": "03:50", "PostedLong": "03:50 Jul 26", "DatePublished": "2026-07-26T03:50:07.153", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9693917/Trump-urges-all-Republican-senators-to-end-filibuster-and-approve-Save-America-Act-budget-and-debt-ceiling.aspx", "HasE": false, "RURL": "", "EURLImg": "<img src=\"images/rss_0.gif\">", "STRID": 0, "RID": 0, "FCID": 0, "FCName": "", "FCNameURL": null, "StreamIDs": [], "TickerIDs": [], "Labels": [], "IID": ""}
 
+API 호출 (tabID=1, oldID=0) -> HTTP 200 | 길이 148283
+뉴스 20건 수신
+Level 값 분포: {'news-general': 20}
+Breaking 값 분포: {False: 20}
 
-############ Startup 파라미터 자동 탐색 ############
-[00] params={} -> HTTP 500 | Missing parameter: info.
-[01] params={'info': '""'} -> HTTP 500 | Missing parameter: TimeOffset.
-[02] params={'info': '""', 'TimeOffset': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Double. Parameter name: type ---> Input string was not in a correct format.
-[03] params={'info': '""', 'TimeOffset': '0'} -> HTTP 500 | Missing parameter: tabID.
-[04] params={'info': '""', 'TimeOffset': '0', 'tabID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[05] params={'info': '""', 'TimeOffset': '0', 'tabID': '0'} -> HTTP 500 | Missing parameter: oldID.
-[06] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[07] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0'} -> HTTP 500 | Missing parameter: TickerID.
-[08] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[09] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0'} -> HTTP 500 | Missing parameter: FeedCompanyID.
-[10] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[11] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0'} -> HTTP 500 | Missing parameter: strSearch.
-[12] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""'} -> HTTP 500 | Missing parameter: extraNID.
-[13] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[14] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '0'} -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">{"News":[],"Cal":null,"CalFil":null,"History":null,"Summary":null,"CEvents":null,"MarketData":null}</string>
+--- 최근 뉴스 8건 ---
+  [13:15 Jul 25] Breaking=False Level='news-general' Type='0' | CFTC Report: A split tape; bearish FX conviction, selective covering and a crude reversal
+  [05:45 Jul 25] Breaking=False Level='news-general' Type='0' | World Foundation raises over $52M in token sale as World Network marks third anniversary
+  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Australian Dollar edges higher after mixed US PMIs
+  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Swiss Franc gains slightly against US Dollar as Oil prices ease
+  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Singapore Dollar: MAS stance supports relative resilience – MUFG
+  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | Japanese Yen stays under pressure as resilient US economy supports the Dollar
+  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | British Pound rises as Oil slide softens USD, Fed hike bets increase
+  [02:00 Jul 25] Breaking=False Level='news-general' Type='0' | XRP trims gains as ETF interest fades
 
->>> 성공! 응답 길이 184
-<?xml version="1.0" encoding="utf-8"?>
-<string xmlns="http://tempuri.org/">{"News":[],"Cal":null,"CalFil":null,"History":null,"Summary":null,"CEvents":null,"MarketData":null}</string>
+--- 첫 뉴스의 전체 필드 ---
+{"Tags": [], "STID": 1, "NewsID": 9693672, "Title": "CFTC Report: A split tape; bearish FX conviction, selective covering and a crude reversal", "TypeID": "0", "Description": "", "PostedShort": "13:15", "PostedLong": "13:15 Jul 25", "DatePublished": "2026-07-25T13:15:27.363", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9693672/CFTC-Report-A-split-tape-bearish-FX-conviction-selective-covering-and-a-crude-reversal.aspx", "HasE": true, "RURL": "", "EURLImg": "<a href=\"https://www.financialjuice.com/News/9693672/CFTC-Report-A-split-tape-bearish-FX-conviction-selective-covering-and-a-crude-reversal.aspx\" target=\"_black\"><img src=\"images/rss_1076.gif\"></a>", "STRID": 0, "RID": 1076, "FCID": 34, "FCName": "FXStreet", "FCNameURL": "FXStreet", "StreamIDs": [5, 1], "TickerIDs": [10853], "Labels": [], "IID": ""}
 
+API 호출 (tabID=2, oldID=0) -> HTTP 200 | 길이 148928
+뉴스 20건 수신
+Level 값 분포: {'': 14, 'news-general': 6}
+Breaking 값 분포: {False: 20}
 
-############ GetPreviousNews 파라미터 자동 탐색 ############
-[00] params={} -> HTTP 500 | Missing parameter: info.
-[01] params={'info': '""'} -> HTTP 500 | Missing parameter: TimeOffset.
-[02] params={'info': '""', 'TimeOffset': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Double. Parameter name: type ---> Input string was not in a correct format.
-[03] params={'info': '""', 'TimeOffset': '0'} -> HTTP 500 | Missing parameter: tabID.
-[04] params={'info': '""', 'TimeOffset': '0', 'tabID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[05] params={'info': '""', 'TimeOffset': '0', 'tabID': '0'} -> HTTP 500 | Missing parameter: oldID.
-[06] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[07] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0'} -> HTTP 500 | Missing parameter: TickerID.
-[08] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[09] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0'} -> HTTP 500 | Missing parameter: FeedCompanyID.
-[10] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[11] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0'} -> HTTP 500 | Missing parameter: strSearch.
-[12] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""'} -> HTTP 500 | Missing parameter: extraNID.
-[13] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Int32. Parameter name: type ---> Input string was not in a correct format.
-[14] params={'info': '""', 'TimeOffset': '0', 'tabID': '0', 'oldID': '0', 'TickerID': '0', 'FeedCompanyID': '0', 'strSearch': '""', 'extraNID': '0'} -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">[]</string>
+--- 최근 뉴스 8건 ---
+  [00:24 Jul 26] Breaking=False Level='' Type='0' | Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports
+  [21:01 Jul 25] Breaking=False Level='news-general' Type='0' | Can an AI Black Box Be Trusted to Run a Nuclear Reactor?
+  [19:01 Jul 25] Breaking=False Level='news-general' Type='0' | The Carbon Capture Boom Is Starting to Crack
+  [17:01 Jul 25] Breaking=False Level='news-general' Type='0' | UCLA Scientists Turn Plastic Waste Into Pure Hydrogen Fuel
+  [15:01 Jul 25] Breaking=False Level='news-general' Type='0' | EU Backs Off Methane Rules as Energy Security Fears Mount
+  [23:01 Jul 24] Breaking=False Level='news-general' Type='0' | The Strait of Hormuz Closure Is Already Hitting Supermarket Prices
+  [20:57 Jul 24] Breaking=False Level='' Type='0' | Saudi-Led Coalition: Targeted Houthi military sites in Yemen's hodeidah governorate – Saud
+  [20:25 Jul 24] Breaking=False Level='' Type='0' | Houthi-Affiliated al Masirah TV: Saudi strikes attack Yemen's Kamaran Island.
 
->>> 성공! 응답 길이 87
-<?xml version="1.0" encoding="utf-8"?>
-<string xmlns="http://tempuri.org/">[]</string>
+--- 첫 뉴스의 전체 필드 ---
+{"Tags": [], "STID": 0, "NewsID": 9693843, "Title": "Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports US in war - State TV", "TypeID": "0", "Description": "", "PostedShort": "00:24", "PostedLong": "00:24 Jul 26", "DatePublished": "2026-07-26T00:24:47.637", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "", "EURL": "https://www.financialjuice.com/News/9693843/Irans-IRGC-Spokesperson-Britain-would-be-a-definite-and-legitimate-target-if-it-supports-US-in-war---State-TV.aspx", "HasE": false, "RURL": "", "EURLImg": "<img src=\"images/rss_0.gif\">", "STRID": 0, "RID": 0, "FCID": 0, "FCName": "", "FCNameURL": null, "StreamIDs": [2, 5, 3, 9, 5], "TickerIDs": [6917], "Labels": ["Energy", "GBP", "UK", "US Bonds", "US Indexes", "USD"], "IID": "b5da5c25-0352-4e75-a02a-43092595b74c"}
 
+===== info 재사용 테스트 =====
 
-############ GetNewsSummary 파라미터 자동 탐색 ############
-[00] params={} -> HTTP 500 | Missing parameter: info.
-[01] params={'info': '""'} -> HTTP 500 | Missing parameter: TimeOffset.
-[02] params={'info': '""', 'TimeOffset': '""'} -> HTTP 500 | Cannot convert &quot;&quot; to System.Double. Parameter name: type ---> Input string was not in a correct format.
-[03] params={'info': '""', 'TimeOffset': '0'} -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div tabindex="0"&gt;&lt;div&gt;&lt;div&gt;&lt;p&gt;-&l
+API 호출 (tabID=0, oldID=0) -> HTTP 200 | 길이 145513
+뉴스 20건 수신
+Level 값 분포: {'news-general': 19, '': 1}
+Breaking 값 분포: {False: 20}
 
->>> 성공! 응답 길이 325
-<?xml version="1.0" encoding="utf-8"?>
-<string xmlns="http://tempuri.org/">&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div tabindex="0"&gt;&lt;div&gt;&lt;div&gt;&lt;p&gt;-&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;</string>
+--- 최근 뉴스 8건 ---
+  [03:50 Jul 26] Breaking=False Level='news-general' Type='0' | Trump urges all Republican senators to end filibuster and approve Save America Act, budget
+  [00:24 Jul 26] Breaking=False Level='' Type='0' | Iran's IRGC Spokesperson: Britain would be a definite and legitimate target if it supports
+  [21:39 Jul 25] Breaking=False Level='news-general' Type='0' | One dead after car slams into crowd in Berlin: Bild, citing police
+  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: Centcom forces disabled Mozambique-flagged tanker Lavine in Gulf of Oman on
+  [21:32 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: earlier Saturday, U.S. forces completed inspection boarding of Comoros-flag
+  [21:31 Jul 25] Breaking=False Level='news-general' Type='0' | U.S. military: as of July 25, CENTCOM has diverted 12 commercial ships attempting to breac
+  [20:54 Jul 25] Breaking=False Level='news-general' Type='0' | Iran summons Ukraine's charge d'affaires over assault on Iranian commercial ship: Iran's s
+  [20:52 Jul 25] Breaking=False Level='news-general' Type='0' | Several injured after incident in Berlin: Berlin police in statement on X
+
+--- 첫 뉴스의 전체 필드 ---
+{"Tags": [], "STID": 0, "NewsID": 9693917, "Title": "Trump urges all Republican senators to end filibuster and approve Save America Act, budget, and debt ceiling", "TypeID": "0", "Description": "", "PostedShort": "03:50", "PostedLong": "03:50 Jul 26", "DatePublished": "2026-07-26T03:50:07.153", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9693917/Trump-urges-all-Republican-senators-to-end-filibuster-and-approve-Save-America-Act-budget-and-debt-ceiling.aspx", "HasE": false, "RURL": "", "EURLImg": "<img src=\"images/rss_0.gif\">", "STRID": 0, "RID": 0, "FCID": 0, "FCName": "", "FCNameURL": null, "StreamIDs": [], "TickerIDs": [], "Labels": [], "IID": ""}
 
 탐사 종료
