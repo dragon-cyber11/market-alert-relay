@@ -226,6 +226,10 @@ def translate_to_ko(text):
     return None
 
 
+# 마지막 전송 결과를 하트비트에 남기기 위한 기록용 (뉴스가 안 올 때 원인 파악용)
+LAST_SEND_STATUS = []
+
+
 def send_telegram(bot_token, chat_id, msg, max_retry=2):
     """텔레그램 전송. (성공여부, 영구실패여부) 를 돌려줌.
     - 429(분당 20건 속도 제한)를 맞으면 서버가 알려준 시간만큼 쉬었다가 재시도
@@ -239,6 +243,7 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
             req = urllib.request.Request(url, data=data)
             with urllib.request.urlopen(req, timeout=20) as r:
                 r.read()
+            LAST_SEND_STATUS.append("ok")
             return True, False
         except urllib.error.HTTPError as e:
             body = ""
@@ -255,13 +260,22 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
                 print("텔레그램 속도 제한, %d초 대기 후 재시도" % wait)
                 time.sleep(min(wait + 1, 60))
                 continue
+            if e.code in (401, 403, 404):
+                # 토큰이 틀렸거나 채널에 못 들어가는 상태. 메시지를 바꿔도 소용없고,
+                # 건너뛰면 뉴스가 조용히 사라지므로 여기서 멈추고 다음 주기에 다시 시도함.
+                print("텔레그램 인증/권한 오류(%s): %s" % (e.code, body))
+                LAST_SEND_STATUS.append("auth_error_%s" % e.code)
+                return False, False
             if 400 <= e.code < 500:
+                # 메시지 자체 문제(길이 초과 등) -> 이 건만 건너뜀
                 print("텔레그램이 거부함(%s): %s" % (e.code, body))
+                LAST_SEND_STATUS.append("rejected_%s" % e.code)
                 return False, True
             print("텔레그램 서버 오류(%s), 재시도" % e.code)
             time.sleep(2)
         except Exception as e:
             print("텔레그램 전송 오류:", e)
+            LAST_SEND_STATUS.append("net_error")
             time.sleep(2)
     return False, False
 
@@ -312,6 +326,20 @@ def note_success():
     save_fail({})
 
 
+def write_heartbeat(latest_id, count):
+    """마지막 실행 시각 + 피드 상태 + 마지막 전송 결과를 한 줄로 기록.
+    뉴스가 텔레그램에 안 올 때, 가져오기가 문제인지 보내기가 문제인지 여기서 구분됨."""
+    if LAST_SEND_STATUS:
+        ok = LAST_SEND_STATUS.count("ok")
+        bad = [x for x in LAST_SEND_STATUS if x != "ok"]
+        send = "send=%d건성공" % ok + (" 실패=%s" % ",".join(sorted(set(bad))) if bad else "")
+    else:
+        send = "send=보낼것없음"
+    with open(HEARTBEAT_FILE, "w") as f:
+        f.write("%s latest_newsid=%s count=%s %s\n" % (
+            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), latest_id, count, send))
+
+
 def news_id_of(n):
     try:
         return int(n.get("NewsID") or 0)
@@ -358,9 +386,7 @@ def main():
     items.sort(key=news_id_of)                 # 오래된 것 -> 최신
     latest_id = news_id_of(items[-1])
 
-    with open(HEARTBEAT_FILE, "w") as f:
-        f.write("%s latest_newsid=%s count=%s\n" % (
-            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), latest_id, len(items)))
+    write_heartbeat(latest_id, len(items))
 
     if first_run:
         write_last_id(latest_id)
@@ -446,6 +472,7 @@ def main():
 
     save_sent_titles(sent_titles, now_epoch)
     write_last_id(last_ok_nid)
+    write_heartbeat(latest_id, len(items))   # 전송 결과까지 반영해서 다시 기록
     print("%s건 전송 완료, 기준 NewsID: %s" % (sent_count, last_ok_nid))
 
 
