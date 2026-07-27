@@ -1,63 +1,43 @@
-
-========== CSS에서 빨간색 규칙 찾기 ==========
-
---- custom.css?v=2.8.9 (HTTP 200, 181346자) ---
-  .imp-1 {  color: red;  }
-
---- custom-dark.css?v=2.8.9 (HTTP 200, 11277자) ---
 info 추출 완료 (길이 328)
 
-========== 알려진 빨간 뉴스 검색 ==========
+========== 1) 뉴스 API 검색: 'Morning Juice' ==========
+HTTP 200
+검색 결과 20건
 
-검색어 'substantial tariff' -> 10건
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [18:15 Jul 24] Trump threatens EU with 'substantial TARIFF' for 'ROBBING' U.S. tech giants
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [18:00 Jul 24] Trump threatens EU with 'substantial TARIFF' for 'ROBBING' U.S. tech giants
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [17:17 Jul 24] The European Union is at it again and, as usual, taking direct aim at GREAT Amer
-  Breaking=False Level='active active-critical' Upd='' Type='0' STID=0 | [17:08 Jul 24] Trump: The Administration expects to impose a substantial tariff on the European
-  Breaking=False Level='active active-critical' Upd='' Type='0' STID=0 | [13:24 Nov 12] US Treasury Secretary Bessent: We will see substantial tariff news next couple d
-  (첫 결과 전체 필드) {"Tags": [], "STID": 1, "NewsID": 9692965, "Title": "Trump threatens EU with 'substantial TARIFF' for 'ROBBING' U.S. tech giants", "TypeID": "0", "Description": "Trump's Truth Social post railed against the European Union's new fine on Google, and prior penalties...", "PostedShort": "18:15", "PostedLong": "18:15 Jul 24", "DatePublished": "2026-07-24T18:15:25.27", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9692965/Trump-threatens-EU-with-substantial-TARIFF-for-ROBBING-US-tech-giants.aspx", "HasE": true, "RURL": "", "EURLImg": "<a href=\"https://www.financialjuice.com/News/9692965/Trump-threatens-EU-with-substantial-TARIFF-for-ROBBING-US-tech-giants.aspx\" target=\"_black\"><img src=\"images/rss_50.gif\"></a>", "STRID": 0, "RID": 50, "FCID": 11, "FCName": "CNBC", "FCNameURL": "CNBC", "StreamIDs": [
+--- NewsID 9694884 | 11:44 Jul 27 ---
+Title: Morning Juice - US Session Prep (27th July)
+Description 길이: 0
+Description 앞부분: 
+EURL: https://www.financialjuice.com/News/9694884/Morning-Juice---US-Session-Prep-27th-July.aspx
+HasE=True RID=0 FCName= Level=''
 
-검색어 'Section 301' -> 20건
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [18:30 Jul 24] "USA Isn't A PiggyBank For Europe": Trump Launches Section 301 Probe Into EU Ove
-  Breaking=False Level='' Upd='' Type='0' STID=0 | [17:07 Jul 24] Trump: The US will immediately initiate a Section 301 investigation into the Eur
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [16:15 Jul 24] Tariffs, Yet Again
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [14:00 Jul 24] Trump's Tariff Wall Returns With Forced-Labor Duties On 60 Countries 
-  Breaking=False Level='news-general' Upd='' Type='0' STID=0 | [21:07 Jul 23] U.S. official: new Section 301 duties start at 12:01 a.m. July 24
-  (첫 결과 전체 필드) {"Tags": [], "STID": 1, "NewsID": 9692990, "Title": "\"USA Isn't A PiggyBank For Europe\": Trump Launches Section 301 Probe Into EU Over Big Tech Fines", "TypeID": "0", "Description": "\"USA Isn't A PiggyBank For Europe\": Trump Launches Section 301 Probe Into EU Over Big Tech Fines\n\n  ...", "PostedShort": "18:30", "PostedLong": "18:30 Jul 24", "DatePublished": "2026-07-24T18:30:25.72", "TestDatePublished": "", "Breaking": false, "Upd": "", "Img": "", "Level": "news-general", "EURL": "https://www.financialjuice.com/News/9692990/USA-Isnt-A-PiggyBank-For-Europe-Trump-Launches-Section-301-Probe-Into-EU-Over-Big-Tech-Fines.aspx", "HasE": true, "RURL": "", "EURLImg": "<a href=\"https://www.financialjuice.com/News/9692990/USA-Isnt-A-PiggyBank-For-Europe-Trump-Launches-Section-301-Probe-Into-EU-Over-Big-Tech-Fines.aspx\" target=\"_black\"><img src=\"images/rss_56.gif\"></a>", "STRID": 0, "RID
+--- NewsID 9694455 | 05:35 Jul 27 ---
+Title: Morning Juice - Europe Session Prep
+Description 길이: 10
+Description 앞부분: ^Read Here
+EURL: https://www.financialjuice.com/News/9694455/Morning-Juice---Europe-Session-Prep.aspx
+HasE=True RID=0 FCName= Level=''
 
-검색어 'pay a very big price' -> 9건
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [17:17 Jul 24] The European Union is at it again and, as usual, taking direct aim at GREAT Amer
-  Breaking=False Level='' Upd='' Type='0' STID=0 | [17:08 Jul 24] Trump: The EU will "pay a very big price" for what he described as illegal and u
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [15:01 Jan 05] Trump Warns Venezuela’s New Leaders to Cooperate or “Pay a Very Big Price”
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [22:02 Jan 04] FirstFT: Trump warns Venezuela’s new leader to meet US demands or pay ‘a very bi
-  Breaking=False Level='news-general' Upd='' Type='0' STID=1 | [21:03 Jan 04] Donald Trump warns Venezuelan rulers as Washington prepares to dictate policy
-  (첫 결과 전체 필드) {"Tags": [], "STID": 1, "NewsID": 9692912, "Title": "The European Union is at it again and, as usual, taking direct aim at GREAT American Companies! After having fined Apple, for no reason at all, 15 Billion Dollars, Meta, 3 Billion Dollars, Amazon 2.5 Billion Dollars, and many others, we have just been informed that Google, a truly advanced and amazing group, has been fined yet another 1 Billion Dollars, without explanation. This brings the Google total to over 18 Billion Dollars! This illegal and highly discriminatory practice started at these high levels during the first year of the Sleepy Joe Biden Administration, but it’s not going to continue during the Trump Administration. The United States of America is not a “PIGGYBANK” for Europe, nor will we allow it to be! Please let this TRUTH serve to represent that we will immediately initiate a 301 Investigation into the practice of “ROB
+--- NewsID 9692396 | 11:31 Jul 24 ---
+Title: Morning Juice - US Session Prep (24th July)
+Description 길이: 0
+Description 앞부분: 
+EURL: https://www.financialjuice.com/News/9692396/Morning-Juice---US-Session-Prep-24th-July.aspx
+HasE=True RID=0 FCName= Level=''
 
-========== 과거 뉴스 훑기 (Breaking/Level 통계) ==========
-  ...1페이지 (누적 20건, oldID=9693744)
-  ...6페이지 (누적 120건, oldID=9693012)
-  ...11페이지 (누적 220건, oldID=9692479)
-  ...16페이지 (누적 320건, oldID=9691894)
-  ...21페이지 (누적 420건, oldID=9691228)
 
-총 500건 확인
-Level 분포: {'news-general': 194, '': 282, 'active active-critical': 16, 'active': 8}
-Breaking 분포: {False: 500}
-특이 항목 24건
-  Breaking=False Level='active active-critical' | [17:08 Jul 24] Trump: The Administration expects to impose a substantial tariff on the European
-  Breaking=False Level='active active-critical' | [16:31 Jul 24] Bahrain and Kuwait warplanes struck Iran in a rare Gulf retaliation - WSJ.
-  Breaking=False Level='active' | [15:15 Jul 24] Trump: China's Xi & Putin said that they wouldn't sell arms to Iran - Truth Soci
-  Breaking=False Level='active' | [15:10 Jul 24] Pakistan and Iran explore a path towards new talks with the US in a China-initia
-  Breaking=False Level='active' | [15:10 Jul 24] Pakistan and Iran explore a path towards new talks with the US in a China-initia
-  Breaking=False Level='active active-critical' | [13:45 Jul 24] US S&P Services PMI Flash Actual 53.6 (Forecast 51.5, Previous 51.2)
-  Breaking=False Level='active active-critical' | [13:45 Jul 24] US S&P Manufacturing PMI Flash Actual 53.8 (Forecast 54.4, Previous 53.9)
-  Breaking=False Level='active active-critical' | [13:45 Jul 24] US S&P Manufacturing PMI Flash Actual 53.8 (Forecast 54.4, Previous 53.9)
-  Breaking=False Level='active active-critical' | [12:45 Jul 24] Head of the Yemeni National Negotiating Delegation Al-Salmi: Contrary to some cl
-  Breaking=False Level='active active-critical' | [08:30 Jul 24] UK Manufacturing PMI Flash Actual 52.8 (Forecast 52, Previous 52.5)
-  Breaking=False Level='active active-critical' | [08:30 Jul 24] UK Composite PMI Flash Actual 52.1 (Forecast 49.8, Previous 49.3)
-  Breaking=False Level='active' | [08:30 Jul 24] UK Services PMI Flash Actual 51.8 (Forecast 49.4, Previous 48.8)
-  Breaking=False Level='active active-critical' | [08:00 Jul 24] Eurozone Manufacturing PMI Flash Actual 52 (Forecast 51.5, Previous 51.4)
-  Breaking=False Level='active' | [07:30 Jul 24] German Manufacturing PMI Flash Actual 52.2 (Forecast 50.5, Previous 50.3)
-  Breaking=False Level='active active-critical' | [07:30 Jul 24] German Composite PMI Flash Actual 51.2 (Forecast 49.7, Previous 49.5)
+========== 2) GetNewsSummary (본문 요약 메서드) ==========
+HTTP 200 | 응답 길이 292
+태그 제거 후 길이: 207
+내용 앞부분:
+A sharp drop in oil prices triggered a relief rally in stocks and bonds following a lull in hostilities in the Middle East, kicking off a week packed with earnings and interest-rate decisions on a high note.
+
+
+========== 3) 기사 페이지 HTML ==========
+HTTP 200 | 길이 56344
+<meta name="description" content="([^"]{ -> 없음
+<meta property="og:description" content= -> 없음
+길이 60자 넘는 <p> 문단 1개
+  - Enter your email address, and we’ll send you a link to reset your password.
 
 탐사 종료
