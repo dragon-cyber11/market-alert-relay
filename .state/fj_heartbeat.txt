@@ -1,1 +1,1 @@
-2026-07-30T12:59:52Z latest_newsid=9700606 count=20 send=보낼것없음
+2026-07-30T13:10:26Z latest_newsid=9700630 count=20 send=보낼것없음
