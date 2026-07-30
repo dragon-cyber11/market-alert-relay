@@ -1,0 +1,111 @@
+# 저장 위치: .github/workflows/relay-watchdog.yml
+#
+# 릴레이 감시견(watchdog).
+#   릴레이 잡은 스스로 죽으면 스스로 신고할 수가 없음. 그래서 밖에서 따로 지켜보는 역할.
+#
+# 15분마다 잠깐 돌면서 릴레이가 마지막으로 남긴 기록(.state/fj_heartbeat.txt) 시각을 확인하고,
+# 기준 시간(25분)을 넘게 갱신이 없으면:
+#   1) 텔레그램으로 "릴레이 멈춤" 알림을 보내고
+#   2) 멈춰 있는(응답 없는) 릴레이 잡이 있으면 강제 종료시킨 뒤
+#   3) 새 릴레이 잡을 직접 띄움
+#      -> 예약(cron)이 몇 시간씩 밀려도 여기서 되살아남
+#
+# 기준을 25분으로 잡은 이유: 릴레이는 상태를 10분에 한 번씩만 저장하고, 잡 교대에도 2~3분이
+# 걸림. 정상인데 잘못 깨우지 않으려면 그보다 넉넉해야 함.
+#
+# 필요한 secret: TELEGRAM_BOT_TOKEN (이미 있음)
+
+name: Relay Watchdog
+
+on:
+  schedule:
+    - cron: '11,29,41,59 * * * *'   # 릴레이 예약(7/23/37/53)과 겹치지 않게 어긋난 분에 실행
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: write        # 멈춘 잡을 강제 종료하려면 필요
+
+concurrency:
+  group: relay-watchdog   # 릴레이와 다른 그룹이어야 서로 안 막음
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Check relay heartbeat
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          STALE_MINUTES: '25'
+        run: |
+          HB=.state/fj_heartbeat.txt
+
+          if [ ! -f "$HB" ]; then
+            echo "하트비트 파일이 없음 - 아직 한 번도 안 돌았거나 경로가 바뀜"
+            exit 0
+          fi
+
+          echo "하트비트 내용: $(cat $HB)"
+
+          # 첫 칸이 '2026-07-27T08:25:44Z' 형태의 UTC 시각
+          TS=$(awk '{print $1}' "$HB")
+          LAST=$(date -u -d "$TS" +%s 2>/dev/null || echo 0)
+          NOW=$(date -u +%s)
+
+          if [ "$LAST" -eq 0 ]; then
+            echo "시각을 읽지 못함: $TS"
+            exit 0
+          fi
+
+          AGE_MIN=$(( (NOW - LAST) / 60 ))
+          echo "마지막 갱신으로부터 ${AGE_MIN}분 경과 (기준 ${STALE_MINUTES}분)"
+
+          if [ "$AGE_MIN" -lt "$STALE_MINUTES" ]; then
+            echo "정상"
+            exit 0
+          fi
+
+          echo "::warning::릴레이가 ${AGE_MIN}분째 멈춰 있음. 알림 후 강제 재시작 시도"
+
+          # 1) 텔레그램 알림
+          MSG=$(printf '⚠️ 뉴스 릴레이 멈춤\n%d분째 동작 기록이 없습니다.\n자동 재시작을 시도합니다.' "$AGE_MIN")
+          curl -s -o /dev/null -X POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="@haesunking" \
+            --data-urlencode text="${MSG}" || echo "텔레그램 알림 실패"
+
+          # 2) 응답 없는 릴레이 잡이 남아 있으면 정리 (살아는 있는데 일을 안 하는 상태)
+          IDS=$(gh run list \
+                  --workflow financialjuice-relay.yml \
+                  --status in_progress \
+                  --limit 5 --json databaseId --jq '.[].databaseId' || true)
+
+          if [ -z "$IDS" ]; then
+            echo "진행 중인 릴레이 잡 없음"
+          else
+            for ID in $IDS; do
+              echo "응답 없는 잡 $ID 강제 종료"
+              gh run cancel "$ID" || echo "종료 실패 (이미 끝났을 수 있음)"
+            done
+            # 종료 처리가 반영될 시간을 조금 줌 (안 그러면 아래 새 잡이 대기열에서만 머묾)
+            sleep 20
+          fi
+
+          # 3) 새 릴레이 잡을 직접 띄움
+          #    예약(cron)에 맡기면 무료 티어에서 몇 시간씩 밀리는 일이 있어서 직접 호출함
+          for i in 1 2 3; do
+            if gh workflow run financialjuice-relay.yml --ref main; then
+              echo "릴레이 재시작 요청 완료"
+              break
+            fi
+            echo "재시작 요청 실패, 재시도 ($i)"
+            sleep 5
+          done
