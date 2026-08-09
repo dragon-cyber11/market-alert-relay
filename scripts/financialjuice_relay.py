@@ -8,6 +8,7 @@ import gzip
 import json
 import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -47,6 +48,12 @@ MAX_TITLE_CHARS = 1200
 # 뉴스를 이 시간 이상 계속 못 가져오면 텔레그램으로 장애 알림을 한 번 보냄
 FAIL_ALERT_AFTER_SECONDS = 300
 
+# 새 뉴스 확인 간격(초). 프로세스를 계속 살려두고 안에서 도는 구조라 짧게 잡아도
+# 파이썬 시작 비용이 다시 들지 않음.
+# 1초 = 분당 60회. 이보다 더 줄이면 파이낸셜주스 앞단(Cloudflare)이 과한 요청으로 보고
+# 차단할 위험이 커져서, 코드로 낼 수 있는 실질적 한계로 잡음.
+POLL_INTERVAL_SECONDS = 1
+
 
 def normalize_title(text):
     return re.sub(r"\s+", " ", text).strip().lower()
@@ -83,6 +90,18 @@ _NOISE_PATTERNS = [re.compile(re.escape(k), re.IGNORECASE) for k in NOISE_KEYWOR
 
 def is_noise(title):
     return any(p.search(title) for p in _NOISE_PATTERNS)
+
+
+def is_link_only_post(n):
+    """'모닝주스'처럼 제목만 있고 본문은 사이트 안쪽 페이지에 있는 자체 게시글인지 판별.
+
+    피드에는 두 종류의 링크성 항목이 들어옴:
+      - 파이낸셜주스 자체 글 (HasE=True, 출처 이름 없음)  -> 제목만 와서 내용이 없음. 걸러냄.
+      - CNBC/FXStreet 같은 외부 언론 기사 (HasE=True, 출처 이름 있음) -> 제목에 정보가 있음. 통과.
+    """
+    if not n.get("HasE"):
+        return False
+    return not (n.get("FCName") or "").strip()
 
 
 def http_get(url, timeout=30):
@@ -231,26 +250,40 @@ LAST_SEND_STATUS = []
 
 
 def send_telegram(bot_token, chat_id, msg, max_retry=2):
-    """텔레그램 전송. (성공여부, 영구실패여부) 를 돌려줌.
-    - 429(분당 20건 속도 제한)를 맞으면 서버가 알려준 시간만큼 쉬었다가 재시도
-    - 400번대(메시지 길이 초과 등)는 재시도해도 소용없으므로 영구실패로 표시하고 건너뜀
-    - 그 외(네트워크/서버 오류)는 일시적 실패로 보고, 호출한 쪽에서 다음 주기에 재시도"""
+    """텔레그램 전송. (성공여부, 더이상재시도안함) 을 돌려줌.
+
+    [핵심 원칙] 텔레그램에서 '응답을 받았을 때만' 전송 여부를 판단한다.
+    응답을 못 받은 경우(타임아웃, 연결 끊김)는 실제로는 이미 전달됐을 수 있다.
+    이때 재시도하면 같은 뉴스가 계속 다시 나가서, 폴링 주기마다 같은 메시지가
+    수십 번 올라가는 사고가 난다(실제로 발생했음). 그래서 이 경우엔 재시도하지 않고
+    '보낸 것으로' 간주하고 넘어간다. 가끔 하나 놓치는 편이 중복 폭탄보다 낫다.
+
+    - 응답 받음 + 성공        -> (True,  False)  정상
+    - 429 속도 제한           -> 서버가 알려준 만큼 쉬었다 재시도 (확실히 미전송이라 안전)
+    - 401/403/404 인증/권한   -> (False, False)  확실히 미전송. 다음 주기에 재시도
+    - 그 외 400번대           -> (False, True)   메시지 자체 문제. 이 건만 건너뜀
+    - 500번대                 -> 한 번 재시도 후 (False, False). 서버가 거절한 것이라 안전
+    - 응답 없음(타임아웃 등)  -> (False, True)   전달 여부 불명. 재시도 안 함(중복 방지)
+    """
     data = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
     url = "https://api.telegram.org/bot%s/sendMessage" % bot_token
 
-    for _ in range(max_retry + 1):
+    for attempt in range(max_retry + 1):
         try:
             req = urllib.request.Request(url, data=data)
             with urllib.request.urlopen(req, timeout=20) as r:
                 r.read()
             LAST_SEND_STATUS.append("ok")
             return True, False
+
         except urllib.error.HTTPError as e:
+            # 여기까지 왔다는 건 텔레그램이 응답을 줬다는 뜻 = 전송 여부가 확실함
             body = ""
             try:
                 body = e.read().decode("utf-8", "replace")[:300]
             except Exception:
                 pass
+
             if e.code == 429:
                 wait = 5
                 try:
@@ -260,23 +293,31 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
                 print("텔레그램 속도 제한, %d초 대기 후 재시도" % wait)
                 time.sleep(min(wait + 1, 60))
                 continue
+
             if e.code in (401, 403, 404):
-                # 토큰이 틀렸거나 채널에 못 들어가는 상태. 메시지를 바꿔도 소용없고,
-                # 건너뛰면 뉴스가 조용히 사라지므로 여기서 멈추고 다음 주기에 다시 시도함.
                 print("텔레그램 인증/권한 오류(%s): %s" % (e.code, body))
                 LAST_SEND_STATUS.append("auth_error_%s" % e.code)
                 return False, False
+
             if 400 <= e.code < 500:
-                # 메시지 자체 문제(길이 초과 등) -> 이 건만 건너뜀
                 print("텔레그램이 거부함(%s): %s" % (e.code, body))
                 LAST_SEND_STATUS.append("rejected_%s" % e.code)
                 return False, True
-            print("텔레그램 서버 오류(%s), 재시도" % e.code)
-            time.sleep(2)
+
+            print("텔레그램 서버 오류(%s)" % e.code)
+            if attempt < max_retry:
+                time.sleep(2)
+                continue
+            LAST_SEND_STATUS.append("server_error_%s" % e.code)
+            return False, False
+
         except Exception as e:
-            print("텔레그램 전송 오류:", e)
-            LAST_SEND_STATUS.append("net_error")
-            time.sleep(2)
+            # 응답을 못 받음. 전달됐는지 알 수 없으므로 다시 보내지 않는다.
+            print("텔레그램 응답 없음(전달 여부 불명, 재시도 안 함):", e)
+            LAST_SEND_STATUS.append("no_response")
+            return False, True
+
+    LAST_SEND_STATUS.append("retry_exhausted")
     return False, False
 
 
@@ -326,18 +367,31 @@ def note_success():
     save_fail({})
 
 
+# "새 뉴스를 처음 본 순간, 발행된 지 몇 초 지났는지" 최근 측정값 (피드 자체 지연 진단용)
+LAST_FEED_LAG = []
+
+
 def write_heartbeat(latest_id, count):
-    """마지막 실행 시각 + 피드 상태 + 마지막 전송 결과를 한 줄로 기록.
-    뉴스가 텔레그램에 안 올 때, 가져오기가 문제인지 보내기가 문제인지 여기서 구분됨."""
+    """마지막 실행 시각 + 피드 상태 + 전송 결과 + 피드 지연을 한 줄로 기록.
+    - send=... : 뉴스가 안 올 때 가져오기 문제인지 보내기 문제인지 구분
+    - lag=...  : 뉴스가 발행되고 우리 눈에 보이기까지 걸린 시간(초).
+                 이 값이 크면 파이낸셜주스 무료 피드 자체가 늦게 주는 것이라
+                 우리 쪽을 아무리 조여도 소용없다는 뜻"""
     if LAST_SEND_STATUS:
         ok = LAST_SEND_STATUS.count("ok")
         bad = [x for x in LAST_SEND_STATUS if x != "ok"]
         send = "send=%d건성공" % ok + (" 실패=%s" % ",".join(sorted(set(bad))) if bad else "")
     else:
         send = "send=보낼것없음"
+    lag = ""
+    if LAST_FEED_LAG:
+        recent = LAST_FEED_LAG[-20:]
+        lag = " lag최근%d건=%d~%d초(중앙%d초)" % (
+            len(recent), min(recent), max(recent),
+            sorted(recent)[len(recent) // 2])
     with open(HEARTBEAT_FILE, "w") as f:
-        f.write("%s latest_newsid=%s count=%s %s\n" % (
-            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), latest_id, count, send))
+        f.write("%s latest_newsid=%s count=%s %s%s\n" % (
+            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), latest_id, count, send, lag))
 
 
 def news_id_of(n):
@@ -371,6 +425,10 @@ def collect_items(info, last_id, do_backfill):
     return list(by_id.values())
 
 
+def send_telegram_msg_wrap():
+    pass
+
+
 def main():
     os.makedirs(STATE_DIR, exist_ok=True)
 
@@ -398,6 +456,12 @@ def main():
         print("새 속보 없음")
         write_last_id(max(last_id, latest_id))
         return
+
+    # 방금 처음 본 뉴스들의 "발행 후 경과 시간" 기록 (피드 지연 진단용)
+    now_ts = int(time.time())
+    for n in candidates:
+        LAST_FEED_LAG.append(max(0, now_ts - parse_epoch(n.get("DatePublished"), default=now_ts)))
+    del LAST_FEED_LAG[:-50]
 
     # 한 주기 상한을 넘으면 오래된 것부터 처리하고, 기준점도 처리한 데까지만 올림.
     # (나머지는 다음 주기에 그대로 이어서 나가므로 누락되지 않음)
@@ -456,8 +520,9 @@ def main():
             last_ok_nid = item["nid"]
             print("전송%s 완료" % (" [중요]" if item["critical"] else ""))
         elif permanent:
-            # 이 메시지 자체가 문제라 다시 보내도 안 됨 -> 건너뛰고 진행
-            print("건너뜀:", title[:60])
+            # 다시 보내면 안 되는 경우(메시지 자체 문제이거나, 전달 여부 불명).
+            # 기록에는 보낸 것으로 남겨 두고 다음 뉴스로 넘어감.
+            print("재전송 안 함(넘어감):", title[:60])
             last_ok_nid = item["nid"]
         else:
             # 일시적 실패 -> 여기서 멈추고, 아직 못 보낸 것들은 기록에서 지워 다음 주기에 재시도
@@ -476,11 +541,41 @@ def main():
     print("%s건 전송 완료, 기준 NewsID: %s" % (sent_count, last_ok_nid))
 
 
+def run_loop(duration_seconds):
+    """프로세스를 살려둔 채 POLL_INTERVAL_SECONDS 간격으로 계속 확인.
+    매 주기 파이썬을 새로 띄우던 방식의 시작 비용(0.3~0.5초)이 사라져서 더 빠름.
+    duration_seconds 가 지나면 종료 -> 워크플로가 상태를 커밋하고 다시 띄움."""
+    end = time.time() + duration_seconds
+    while time.time() < end:
+        cycle_start = time.time()
+        try:
+            main()
+            note_success()
+        except Exception as e:
+            print("이번 주기 오류:", repr(e)[:300])
+            note_failure(e)
+        elapsed = time.time() - cycle_start
+        remain = POLL_INTERVAL_SECONDS - elapsed
+        if remain > 0:
+            time.sleep(min(remain, max(0, end - time.time())))
+
+
 if __name__ == "__main__":
-    try:
-        main()
-        note_success()
-    except Exception as e:
-        print("실행 오류:", repr(e)[:300])
-        note_failure(e)
-        raise SystemExit(1)
+    duration = 0
+    if len(sys.argv) > 1:
+        try:
+            duration = int(sys.argv[1])
+        except ValueError:
+            duration = 0
+
+    if duration > 0:
+        run_loop(duration)
+    else:
+        # 인자 없이 실행하면 예전처럼 1회만 확인 (테스트/수동 실행용)
+        try:
+            main()
+            note_success()
+        except Exception as e:
+            print("실행 오류:", repr(e)[:300])
+            note_failure(e)
+            raise SystemExit(1)
