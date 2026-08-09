@@ -1,1 +1,1 @@
-2026-08-09T19:40:34Z latest_newsid=9713824 count=20 send=2건성공 lag최근2건=10~11초(중앙11초)
+2026-08-09T19:50:35Z latest_newsid=9713824 count=20 send=보낼것없음
