@@ -1,12 +1,18 @@
-# 인베스팅닷컴 경제일정 위젯 구조 확인용 탐사 스크립트
+# 파이낸셜주스 경제일정(GetCalendar) 구조 확인용 탐사 스크립트
 #
-# 인베스팅은 다른 사이트에 갖다 붙이라고 공개 임베드 위젯을 제공함(sslecal2.investing.com).
-# 이 위젯 HTML 안에 시간/국가/중요도(별)/지표명/예상치/이전치가 들어있는지,
-# 별 개수가 어떤 형태로 표시되는지 확인하는 게 목적.
+# 인베스팅 위젯이 GitHub 서버 IP를 403으로 막아서, 이미 뚫려 있는 파이낸셜주스 API의
+# 경제일정 기능을 쓰기로 함. 사이트 HTML에서 일정 항목에 imp-1/imp-2/imp-3 (중요도)
+# 표시가 있는 걸 확인했으므로, 별 2개 이상만 고르는 것도 가능할 것으로 봄.
 #
-# 텔레그램 전송 안 함. 결과는 .state/inv_probe.txt (요약) 과
-# .state/inv_widget.html (원본 HTML) 로 저장.
+# 하는 일:
+#   1) 홈페이지에서 info(인증값) 추출
+#   2) GetCalendar / GetCalendarFilters 를 파라미터 자동 탐색으로 호출 성공시키기
+#   3) 응답 구조를 그대로 기록 (중요도 필드가 어떤 이름/값인지 확인)
+#   4) Startup 응답의 Cal 필드도 같이 확인
+#
+# 텔레그램 전송 안 함. 결과는 .state/inv_probe.txt
 import gzip
+import json
 import os
 import re
 import urllib.error
@@ -14,26 +20,13 @@ import urllib.parse
 import urllib.request
 
 OUT_TXT = ".state/inv_probe.txt"
-OUT_HTML = ".state/inv_widget.html"
+HOME_URL = "https://www.financialjuice.com/home"
+BASE = "https://live.financialjuice.com/FJService.asmx"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
-# 위젯 파라미터
-#   columns    : 표시할 열
-#   importance : 1,2,3 = 별 1~3개 (일단 전부 받아서 어떻게 구분되는지 확인)
-#   countries  : 국가 코드 (미국5, 유로존72, 중국37, 일본35, 영국4, 한국11 등으로 알려져 있음)
-#   timeZone   : 88 = 서울
-#   lang       : 1 = 영어
-WIDGET_URL = (
-    "https://sslecal2.investing.com/"
-    "?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous"
-    "&features=datepicker,timezone"
-    "&countries=5,72,37,35,4,11"
-    "&importance=1,2,3"
-    "&calType=day"
-    "&timeZone=88"
-    "&lang=1"
-)
+# 파라미터 값을 모를 때 순서대로 시도해볼 후보들
+CANDIDATES = ['""', "0", "false", "1", '"0"', "-1", '"en"']
 
 lines = []
 
@@ -47,9 +40,8 @@ def log(*a):
 def http_get(url, timeout=40):
     req = urllib.request.Request(url, headers={
         "User-Agent": UA,
-        "Referer": "https://www.investing.com/",
+        "Referer": "https://www.financialjuice.com/",
         "Accept-Encoding": "gzip",
-        "Accept-Language": "en-US,en;q=0.9",
     })
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -66,55 +58,148 @@ def http_get(url, timeout=40):
         return -1, repr(e)[:300]
 
 
+def get_info():
+    st, html = http_get(HOME_URL)
+    m = re.search(r"var\s+info\s*=\s*'([^']+)'", html)
+    if not m:
+        log("info 추출 실패 (HTTP %s)" % st)
+        return None
+    log("info 추출 완료 (길이 %d)" % len(m.group(1)))
+    return m.group(1)
+
+
+def unwrap(body):
+    m = re.search(r"<string[^>]*>(.*)</string>", body, re.DOTALL)
+    inner = m.group(1) if m else body
+    return (inner.replace("&lt;", "<").replace("&gt;", ">")
+                 .replace("&quot;", '"').replace("&amp;", "&"))
+
+
+def call(method, params):
+    url = BASE + "/" + method
+    if params:
+        url += "?" + "&".join("%s=%s" % (k, urllib.parse.quote(v, safe=""))
+                              for k, v in params.items())
+    return http_get(url)
+
+
+def discover(method, seed):
+    """서버가 알려주는 'Missing parameter: XXX' 를 이용해 필요한 값을 자동으로 채움"""
+    log("\n\n########## %s 파라미터 자동 탐색 ##########" % method)
+    params = dict(seed)
+    tried = {}
+
+    for step in range(40):
+        status, body = call(method, params)
+        short = body.strip()[:160].replace("\n", " ")
+        log("[%02d] %s -> HTTP %s | %s" % (step, list(params), status, short))
+
+        if status == 200:
+            log("\n>>> 성공! 응답 길이 %d" % len(body))
+            return params, body
+
+        m = re.search(r"Missing parameter:\s*([A-Za-z_0-9]+)", body)
+        if m:
+            name = m.group(1)
+            tried[name] = 0
+            params[name] = CANDIDATES[0]
+            continue
+
+        target = None
+        for name in reversed(list(params.keys())):
+            if name in body:
+                target = name
+                break
+        if target is None and params:
+            target = list(params.keys())[-1]
+        if target is None:
+            log(">>> 더 진행 못 함")
+            return None, body
+
+        idx = tried.get(target, 0) + 1
+        if idx >= len(CANDIDATES):
+            log(">>> '%s' 후보값 소진" % target)
+            return None, body
+        tried[target] = idx
+        params[target] = CANDIDATES[idx]
+
+    return None, None
+
+
+def show_calendar(body):
+    """응답에서 일정 항목과 중요도 필드를 찾아 보여줌"""
+    inner = unwrap(body)
+    log("\n--- 응답 앞부분(원본) ---")
+    log(inner[:1500])
+
+    try:
+        data = json.loads(inner)
+    except Exception:
+        log("\n(JSON 아님 - HTML 조각일 수 있음)")
+        # HTML 이면 중요도 클래스 확인
+        imps = re.findall(r'class="[^"]*imp-(\d)[^"]*"', inner)
+        if imps:
+            from collections import Counter
+            log("중요도 클래스 분포: %s" % dict(Counter(imps)))
+        rows = re.findall(r"<div[^>]*div-table-row[^>]*>.*?</div>\s*</div>", inner, re.DOTALL)
+        log("행 후보 %d개" % len(rows))
+        for r in rows[:5]:
+            txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", r)).strip()
+            log("  " + txt[:200])
+        return
+
+    # JSON 인 경우
+    log("\n최상위 키: %s" % (list(data) if isinstance(data, dict) else type(data)))
+    for k in (data if isinstance(data, dict) else {}):
+        v = data[k]
+        if isinstance(v, list) and v:
+            log("\n--- %s : %d건, 첫 항목 전체 필드 ---" % (k, len(v)))
+            log(json.dumps(v[0], ensure_ascii=False)[:1200])
+            imp_keys = [kk for kk in (v[0] if isinstance(v[0], dict) else {})
+                        if "imp" in kk.lower()]
+            if imp_keys:
+                from collections import Counter
+                for ik in imp_keys:
+                    log("  중요도 필드 '%s' 값 분포: %s"
+                        % (ik, dict(Counter(str(x.get(ik)) for x in v if isinstance(x, dict)))))
+            log("\n  앞쪽 8건 요약:")
+            for x in v[:8]:
+                if isinstance(x, dict):
+                    log("    " + json.dumps(
+                        {kk: x[kk] for kk in list(x)[:8]}, ensure_ascii=False)[:200])
+
+
 def main():
     os.makedirs(".state", exist_ok=True)
-
-    log("=== 위젯 요청 ===")
-    log(WIDGET_URL)
-    status, html = http_get(WIDGET_URL)
-    log("HTTP %s | 길이 %d" % (status, len(html)))
-
-    if status != 200 or len(html) < 500:
-        log("가져오기 실패. 앞부분:")
-        log(html[:1000])
+    info = get_info()
+    if not info:
         with open(OUT_TXT, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
         return
 
-    with open(OUT_HTML, "w", encoding="utf-8") as f:
-        f.write(html[:600000])
-    log("원본 HTML 저장 완료")
+    seed = {"info": '"%s"' % info, "TimeOffset": "0"}
 
-    # ---------- 표 구조 파악 ----------
-    log("\n=== 이벤트 행(tr) 개수 ===")
-    rows = re.findall(r"<tr[^>]*id=[\"']eventRowId[^>]*>.*?</tr>", html, re.DOTALL)
-    if not rows:
-        rows = re.findall(r"<tr[^>]*class=[\"'][^\"']*js-event-item[^\"']*[^>]*>.*?</tr>",
-                          html, re.DOTALL)
-    if not rows:
-        rows = re.findall(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
-        log("(전용 패턴 실패, 모든 tr 사용)")
-    log("행 %d개" % len(rows))
+    for method in ["GetCalendar", "GetCalendarFilters"]:
+        params, body = discover(method, seed)
+        if params and body:
+            log("\n성공한 파라미터: %s" % {k: (v[:20] + "..." if len(v) > 20 else v)
+                                          for k, v in params.items()})
+            show_calendar(body)
 
-    log("\n=== 중요도(별)를 나타내는 클래스 후보 ===")
-    icons = re.findall(r'class="([^"]*(?:[Bb]ull|[Ss]tar|importance)[^"]*)"', html)
-    from collections import Counter
-    for cls, cnt in Counter(icons).most_common(12):
-        log("  %-45s %d회" % (cls, cnt))
-
-    log("\n=== 앞쪽 행 5개 원본 그대로 ===")
-    for r in rows[:5]:
-        compact = re.sub(r"\s+", " ", r)
-        log("\n---- 행 ----")
-        log(compact[:1600])
-
-    log("\n=== 행에서 텍스트만 뽑아본 것 (10개) ===")
-    for r in rows[:10]:
-        cells = re.findall(r"<td[^>]*>(.*?)</td>", r, re.DOTALL)
-        txt = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", c)).strip() for c in cells]
-        txt = [t for t in txt if t]
-        if txt:
-            log("  " + " | ".join(txt)[:220])
+    # Startup 응답의 Cal 필드도 확인
+    log("\n\n########## Startup 의 Cal 필드 ##########")
+    st, body = call("Startup", {
+        "info": '"%s"' % info, "TimeOffset": "0", "tabID": "0", "oldID": "0",
+        "TickerID": "0", "FeedCompanyID": "0", "strSearch": '""', "extraNID": "0"})
+    if st == 200:
+        try:
+            data = json.loads(unwrap(body))
+            for k in ("Cal", "CalFil", "CEvents"):
+                v = data.get(k)
+                log("%s: %s" % (k, (json.dumps(v, ensure_ascii=False)[:600]
+                                    if v else "비어있음")))
+        except Exception as e:
+            log("파싱 실패: %s" % e)
 
     with open(OUT_TXT, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
