@@ -92,13 +92,33 @@ def is_noise(title):
     return any(p.search(title) for p in _NOISE_PATTERNS)
 
 
-def is_link_only_post(n):
-    """'모닝주스'처럼 제목만 있고 본문은 사이트 안쪽 페이지에 있는 자체 게시글인지 판별.
+# 파이낸셜주스가 정기적으로 올리는 자체 게시글. 제목만 오고 본문은 사이트 안쪽에 있어서
+# 텔레그램으로 받아봐야 알맹이가 없음.
+#   - Morning Juice - Europe/US Session Prep  (하루 두 번, 세션 준비 글)
+#   - Week Ahead: Economic Indicators         (주간 일정 안내)
+#   - ... Market Wrap                         (장 마감 요약)
+OWN_POST_PATTERNS = [
+    re.compile(r"morning juice", re.IGNORECASE),
+    re.compile(r"week ahead", re.IGNORECASE),
+    re.compile(r"market wrap", re.IGNORECASE),
+]
 
-    피드에는 두 종류의 링크성 항목이 들어옴:
-      - 파이낸셜주스 자체 글 (HasE=True, 출처 이름 없음)  -> 제목만 와서 내용이 없음. 걸러냄.
-      - CNBC/FXStreet 같은 외부 언론 기사 (HasE=True, 출처 이름 있음) -> 제목에 정보가 있음. 통과.
+
+def is_link_only_post(n):
+    """본문 없이 제목만 오는 파이낸셜주스 자체 게시글인지 판별.
+
+    두 가지 방법으로 잡아냄:
+      1) 제목이 자체 게시글 형식 (Morning Juice / Week Ahead / Market Wrap)
+         - 마켓랩은 외부 매체 이름이 붙어 오는 경우가 있어서 구조만으로는 못 잡음
+      2) 구조상 링크성 글인데 출처 이름이 비어 있음 (HasE=True + FCName 없음)
+         - 파이낸셜주스가 직접 쓴 글이라는 뜻
+
+    CNBC/FXStreet 같은 외부 언론 기사는 출처 이름이 붙어 있고 제목 자체에 정보가
+    있으므로 통과시킴.
     """
+    title = n.get("Title") or ""
+    if any(p.search(title) for p in OWN_POST_PATTERNS):
+        return True
     if not n.get("HasE"):
         return False
     return not (n.get("FCName") or "").strip()
@@ -254,7 +274,7 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
 
     [핵심 원칙] 텔레그램에서 '응답을 받았을 때만' 전송 여부를 판단한다.
     응답을 못 받은 경우(타임아웃, 연결 끊김)는 실제로는 이미 전달됐을 수 있다.
-    이때 재시도하면 같은 뉴스가 계속 다시 나가서, 폴링 주기마다 같은 메시지가
+    이때 재시도하면 같은 뉴스가 계속 다시 나가서, 5초 주기로 같은 메시지가
     수십 번 올라가는 사고가 난다(실제로 발생했음). 그래서 이 경우엔 재시도하지 않고
     '보낸 것으로' 간주하고 넘어간다. 가끔 하나 놓치는 편이 중복 폭탄보다 낫다.
 
@@ -425,10 +445,6 @@ def collect_items(info, last_id, do_backfill):
     return list(by_id.values())
 
 
-def send_telegram_msg_wrap():
-    pass
-
-
 def main():
     os.makedirs(STATE_DIR, exist_ok=True)
 
@@ -476,6 +492,11 @@ def main():
     for n in batch:
         title = clip(n.get("Title"))
         if not title:
+            continue
+        if is_link_only_post(n):
+            # 모닝주스처럼 본문 없이 제목만 있는 자체 게시글은 보내지 않음
+            print("자체 게시글 제외:", title[:60])
+            sent_titles[normalize_title(title)] = now_epoch
             continue
         key = normalize_title(title)
         if key in sent_titles:      # 같은 기사가 시간만 바뀌어 다시 올라오는 경우 제외
