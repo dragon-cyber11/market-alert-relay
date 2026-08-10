@@ -1,7 +1,6 @@
 # 저장 위치: .github/workflows/fj-ws-probe.yml
-# FinancialJuice 탐사 v4 (뉴스 API 직접 호출 테스트, 수동 실행 전용)
-# - 빨간 뉴스 정보(Breaking/Level)가 담긴 JSON API를 우리가 직접 호출할 수 있는지 확인
-# - 결과: .state/fj_api_probe.txt
+# 인베스팅 경제일정 위젯 구조 확인 (수동 실행 전용)
+# - 결과: .state/inv_probe.txt, .state/inv_widget.html
 # - 텔레그램 전송 안 함. 기존 릴레이에 영향 없음. 30초면 끝남
 name: FJ WebSocket Probe
 
@@ -19,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Probe news API
+      - name: Probe
         run: |
           mkdir -p .state
           python3 scripts/fj_ws_probe.py 2>&1 | tail -300 | tee .state/fj_ws_probe_log.txt
@@ -29,10 +28,10 @@ jobs:
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
-          for f in .state/fj_api_probe.txt .state/fj_ws_probe_log.txt; do
+          for f in .state/inv_probe.txt .state/inv_widget.html .state/fj_ws_probe_log.txt; do
             [ -f "$f" ] && git add "$f"
           done
-          git commit -m "fj probe v4 (news api)" || echo "커밋할 변경사항 없음"
+          git commit -m "investing calendar probe" || echo "커밋할 변경사항 없음"
           for i in 1 2 3 4 5; do
             if git push; then
               break
