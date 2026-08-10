@@ -1,5 +1,59 @@
-=== 위젯 요청 ===
-https://sslecal2.investing.com/?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone&countries=5,72,37,35,4,11&importance=1,2,3&calType=day&timeZone=88&lang=1
-HTTP 403 | 길이 3
-가져오기 실패. 앞부분:
-403
+info 추출 완료 (길이 328)
+
+
+########## GetCalendar 파라미터 자동 탐색 ##########
+[00] ['info', 'TimeOffset'] -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">[{"Company":{"FeedCompanyID":null,"Name":null,"URL":null},"ID":"331177ac-1511-4e66-3
+
+>>> 성공! 응답 길이 109814
+
+성공한 파라미터: {'info': '"EAAAABkW6wEpLHLmtI+...', 'TimeOffset': '0'}
+
+--- 응답 앞부분(원본) ---
+[{"Company":{"FeedCompanyID":null,"Name":null,"URL":null},"ID":"331177ac-1511-4e66-3a23-d61e6cae6982","Date":"2027-04-01T00:00:00","Time":"05:00","Title":"First Round Votes on French President (Tentative)","URL":"","Speaker":"","FJTitle":"","Forecast":"-","Previous":"-","Actual":"-","Revision":"","Description":"","DisplayDate":"April 01","RealDate":"2027-04-01T05:00:00","ImpID":"3","TypeID":"1","Active":true,"Breaking":false,"WLive":false,"FeedCompanyID":0,"CountryCode":"FR","FastID":0,"StrongData":0,"HID":"","TID":"","TName":""},{"Company":{"FeedCompanyID":null,"Name":null,"URL":null},"ID":"a11e0135-5e18-6daf-42b1-cee80cd42270","Date":"2026-12-25T00:00:00","Time":"05:00","Title":"US Holiday","URL":"","Speaker":"","FJTitle":"","Forecast":"-","Previous":"-","Actual":"-","Revision":"","Description":"","DisplayDate":"December 25","RealDate":"2026-12-25T05:00:00","ImpID":"3","TypeID":"1","Active":true,"Breaking":false,"WLive":false,"FeedCompanyID":0,"CountryCode":"US","FastID":0,"StrongData":0,"HID":"a11e0135-5e18-6daf-42b1-cee80cd42270","TID":"","TName":""},{"Company":{"FeedCompanyID":null,"Name":null,"URL":null},"ID":"537737bd-5d79-fcc3-9c86-5791a955cd8b","Date":"2026-12-24T00:00:00","Time":"18:00","Title":"Early Market Close","URL":"","Speaker":"","FJTitle":"","Forecast":"-","Previous":"-","Actual":"-","Revision":"","Description":"","DisplayDate":"December 24","RealDate":"2026-12-24T18:00:00","ImpID":"3","TypeID":"1","Active":true,"Breaking":false,"WLive":false,"FeedCompanyID"
+
+최상위 키: <class 'list'>
+
+
+########## GetCalendarFilters 파라미터 자동 탐색 ##########
+[00] ['info', 'TimeOffset'] -> HTTP 500 | Missing parameter: full.
+[01] ['info', 'TimeOffset', 'full'] -> HTTP 500 | Cannot convert &quot;&quot; to System.Boolean. Parameter name: type ---> String was not recognized as a valid Boolean.
+[02] ['info', 'TimeOffset', 'full'] -> HTTP 500 | Cannot convert 0 to System.Boolean. Parameter name: type ---> String was not recognized as a valid Boolean.
+[03] ['info', 'TimeOffset', 'full'] -> HTTP 200 | <?xml version="1.0" encoding="utf-8"?> <string xmlns="http://tempuri.org/">{"Countries":[{"id":1,"code":"AU","Name":"Australia"},{"id":2,"code":"CA","Name":"Ca
+
+>>> 성공! 응답 길이 1048
+
+성공한 파라미터: {'info': '"EAAAABkW6wEpLHLmtI+...', 'TimeOffset': '0', 'full': 'false'}
+
+--- 응답 앞부분(원본) ---
+{"Countries":[{"id":1,"code":"AU","Name":"Australia"},{"id":2,"code":"CA","Name":"Canada"},{"id":4,"code":"CN","Name":"China"},{"id":7,"code":"EU","Name":"Euro Zone"},{"id":8,"code":"FR","Name":"France"},{"id":5,"code":"DE","Name":"Germany"},{"id":10,"code":"HK","Name":"Hong Kong"},{"id":11,"code":"IN","Name":"India"},{"id":12,"code":"IT","Name":"Italy"},{"id":13,"code":"JP","Name":"Japan"},{"id":15,"code":"NL","Name":"Netherlands"},{"id":17,"code":"NZ","Name":"New Zealand"},{"id":16,"code":"NO","Name":"Norway"},{"id":22,"code":"RU","Name":"Russia"},{"id":19,"code":"SG","Name":"Singapore"},{"id":14,"code":"KR","Name":"South Korea"},{"id":6,"code":"ES","Name":"Spain"},{"id":18,"code":"SE","Name":"Sweden"},{"id":3,"code":"CH","Name":"Switzerland"},{"id":21,"code":"TR","Name":"Turkey"},{"id":9,"code":"GB","Name":"United Kingdom"},{"id":20,"code":"US","Name":"United States"}],"Imp":[{"id":1,"Name":"High"},{"id":2,"Name":"Medium"},{"id":3,"Name":"Low"}]}
+
+최상위 키: ['Countries', 'Imp']
+
+--- Countries : 22건, 첫 항목 전체 필드 ---
+{"id": 1, "code": "AU", "Name": "Australia"}
+
+  앞쪽 8건 요약:
+    {"id": 1, "code": "AU", "Name": "Australia"}
+    {"id": 2, "code": "CA", "Name": "Canada"}
+    {"id": 4, "code": "CN", "Name": "China"}
+    {"id": 7, "code": "EU", "Name": "Euro Zone"}
+    {"id": 8, "code": "FR", "Name": "France"}
+    {"id": 5, "code": "DE", "Name": "Germany"}
+    {"id": 10, "code": "HK", "Name": "Hong Kong"}
+    {"id": 11, "code": "IN", "Name": "India"}
+
+--- Imp : 3건, 첫 항목 전체 필드 ---
+{"id": 1, "Name": "High"}
+
+  앞쪽 8건 요약:
+    {"id": 1, "Name": "High"}
+    {"id": 2, "Name": "Medium"}
+    {"id": 3, "Name": "Low"}
+
+
+########## Startup 의 Cal 필드 ##########
+Cal: [{"Company": {"FeedCompanyID": null, "Name": null, "URL": null}, "ID": "331177ac-1511-4e66-3a23-d61e6cae6982", "Date": "2027-04-01T00:00:00", "Time": "05:00", "Title": "First Round Votes on French President (Tentative)", "URL": "", "Speaker": "", "FJTitle": "", "Forecast": "-", "Previous": "-", "Actual": "-", "Revision": "", "Description": "", "DisplayDate": "April 01", "RealDate": "2027-04-01T05:00:00", "ImpID": "3", "TypeID": "1", "Active": true, "Breaking": false, "WLive": false, "FeedCompanyID": 0, "CountryCode": "FR", "FastID": 0, "StrongData": 0, "HID": "", "TID": "", "TName": ""}, {"Com
+CalFil: {"Countries": [{"id": 1, "code": "AU", "Name": "Australia"}, {"id": 2, "code": "CA", "Name": "Canada"}, {"id": 4, "code": "CN", "Name": "China"}, {"id": 7, "code": "EU", "Name": "Euro Zone"}, {"id": 8, "code": "FR", "Name": "France"}, {"id": 5, "code": "DE", "Name": "Germany"}, {"id": 10, "code": "HK", "Name": "Hong Kong"}, {"id": 11, "code": "IN", "Name": "India"}, {"id": 12, "code": "IT", "Name": "Italy"}, {"id": 13, "code": "JP", "Name": "Japan"}, {"id": 15, "code": "NL", "Name": "Netherlands"}, {"id": 17, "code": "NZ", "Name": "New Zealand"}, {"id": 16, "code": "NO", "Name": "Norway"}, {"i
+CEvents: 비어있음
+
+탐사 종료
