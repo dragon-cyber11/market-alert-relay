@@ -1,34 +1,36 @@
 # 경제일정 알림 — 파이낸셜주스 GetCalendar 기반
 #
-# 하루 두 번, 보내는 시각으로부터 24시간 안의 "최고 중요도(별3)" 일정만 정리해서 전송.
-#   - 한국시간 06:25
-#   - 미국동부시간 06:25 (서머타임 자동 대응)
+# 보내는 시각:
+#   한국시간   매일 06:25   -> 앞으로 24시간
+#   미국동부   매일 06:25   -> 앞으로 24시간 (서머타임 자동 대응)
+#   한국시간   월요일 06:00 -> 앞으로 7일 (주간 미리보기)
 #
 # [데이터 출처]
 #   https://live.financialjuice.com/FJService.asmx/GetCalendar?info="..."&TimeOffset=0
-#   -> JSON 배열. 항목 필드: RealDate, Time, Title, CountryCode, ImpID, TypeID,
-#      Forecast, Previous, Actual, Speaker, Breaking, Active ...
+#   -> JSON 배열. 필드: RealDate, Time, Title, CountryCode, ImpID, TypeID,
+#      Forecast, Previous, Actual, Speaker, Breaking, Active, Company ...
 #
-# [검증된 사실 — 저장소의 fj_page.html(사이트 원본 캡처)과 대조해서 확인]
+# [검증된 사실 — 저장소의 fj_page.html(사이트 원본 캡처)과 대조해 확인]
 #   * RealDate 는 UTC 다.
 #       일본 서비스PPI 23:50 = JST 08:50 / 중국 공업이익 01:30 = CST 09:30
 #       EIA 원유재고 14:30 = ET 10:30 / FOMC 18:00 = ET 14:00
-#   * ImpID 는 1=High, 2=Medium, 3=Low. (GetCalendarFilters 의 Imp 목록과 일치)
+#   * ImpID 는 1=High, 2=Medium, 3=Low (GetCalendarFilters 의 Imp 목록과 일치).
 #       1 = FOMC, BoE/BoJ 금리결정, 미국 PCE, 유로존 GDP, 독일 CPI, 애플 실적 ...
 #       3 = 모기지신청건수, 시추기 수, 국채 응찰배율, 휴장일 ...
-#     따라서 "인베스팅 별 3개"에 해당하는 건 ImpID == 1 이다. 숫자가 거꾸로니 주의.
-#   * Breaking=true 는 사이트가 즉시 밀어주는 항목(FOMC 등). ⚡ 로 표시함.
+#     "인베스팅 별 3개"에 해당하는 건 ImpID == 1 이다. 숫자가 거꾸로니 주의.
 #
 # [중복 발송 방지]
-#   예약(cron)은 몇십 분씩 밀리는 일이 흔해서 슬롯마다 예비 시각을 여러 개 걸어둠.
+#   깃허브 예약(cron)은 수십 분씩 밀리는 일이 흔해서 슬롯마다 예비 시각을 여러 개 걸어둔다.
 #   그래서 "그 날 그 슬롯을 이미 보냈는지"를 .state/cal_sent.json 에 기록하고,
-#   현지시각이 06:25~11:00 사이일 때만 보낸다. 밀려도 늦게나마 한 번은 나가고,
-#   여러 번 깨어나도 두 번 나가지는 않는다.
+#   현지시각이 발송시각~11시 사이일 때만 보낸다.
+#   밀려도 늦게나마 한 번은 나가고, 여러 번 깨어나도 두 번 나가지 않는다.
 #
 # 사용법:
-#   python3 scripts/calendar_relay.py          # 정상 동작 (슬롯 판단)
-#   python3 scripts/calendar_relay.py test     # 슬롯 무시하고 지금 즉시 전송
-#   python3 scripts/calendar_relay.py dry      # 전송 안 하고 화면에만 출력
+#   python3 scripts/calendar_relay.py               # 정상 (슬롯 판단)
+#   python3 scripts/calendar_relay.py dry           # 하루치를 화면에만 출력
+#   python3 scripts/calendar_relay.py test          # 하루치를 지금 즉시 전송
+#   python3 scripts/calendar_relay.py weekly-dry    # 주간치를 화면에만 출력
+#   python3 scripts/calendar_relay.py weekly-test   # 주간치를 지금 즉시 전송
 import gzip
 import json
 import os
@@ -50,16 +52,20 @@ STATE_PATH = ".state/cal_sent.json"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
-WANT_IMP = {"1"}          # 최고 중요도만. 2까지 넣고 싶으면 {"1", "2"}
-WINDOW_HOURS = 24         # 보내는 시각으로부터 몇 시간치를 볼지
-SEND_HOUR, SEND_MIN = 6, 25
-LATE_LIMIT_HOUR = 11      # 예약이 이 시각을 넘게 밀리면 그 날은 포기
-MAX_EVENTS = 40           # 안전장치. 넘으면 잘라냄
-TG_LIMIT = 3800           # 텔레그램 한 통 최대치(4096)보다 여유 있게
+HEADER_DAY = "📈 주요 경제일정"
+HEADER_WEEK = "📈 이번주 주요 경제일정"
 
+WANT_IMP = {"1"}          # 최고 중요도만. 2까지 넣으려면 {"1", "2"}
+LATE_LIMIT_HOUR = 11      # 예약이 이 시각을 넘게 밀리면 그 날은 포기
+MAX_EVENTS_DAY = 40
+MAX_EVENTS_WEEK = 120
+TG_LIMIT = 3800           # 텔레그램 한 통 한계(4096)보다 여유 있게
+
+# (키, 시간대, (시,분), 요일제한(0=월, None=매일), 커버시간, 라벨)
 SLOTS = [
-    ("kst", "Asia/Seoul", "한국시간"),
-    ("us", "America/New_York", "미국동부시간"),
+    ("weekly", "Asia/Seoul", (6, 0), 0, 24 * 7, "주간 미리보기"),
+    ("kst", "Asia/Seoul", (6, 25), None, 24, "한국 아침"),
+    ("us", "America/New_York", (6, 25), None, 24, "미국 아침"),
 ]
 
 KST = ZoneInfo("Asia/Seoul")
@@ -73,16 +79,18 @@ FLAG = {
     "RU": "🇷🇺", "TR": "🇹🇷",
 }
 
-# 구글 번역이 자주 어색하게 뱉는 것들만 직접 지정 (제목 전체가 일치할 때)
+# 구글 번역이 어색하게 뱉는 것들만 직접 지정 (제목 전체가 일치할 때)
 TITLE_OVERRIDE = {
     "us interest rate decision": "미국 기준금리 결정",
     "fomc rate statement": "FOMC 성명",
     "fomc rate statement & sep": "FOMC 성명 및 점도표(SEP)",
     "boe bank rate": "영란은행 기준금리",
     "boe rate statement": "영란은행 성명",
+    "boc rate statement": "캐나다중앙은행 성명",
     "boj rate decision": "일본은행 금리 결정",
     "boj rate statement": "일본은행 성명",
     "ecb rate decision": "ECB 금리 결정",
+    "ecb rate statement": "ECB 성명",
     "us treasury qra": "미국 재무부 국채발행계획(QRA)",
     "us treasury qra estimates": "미국 재무부 자금조달 추정",
 }
@@ -94,7 +102,7 @@ POST_FIX = [
     (r"\bQoQ\b", "전분기대비"), (r"\bQOQ\b", "전분기대비"),
     (r"\bPrelim\.?", "잠정"), (r"\bFlash\b", "속보치"),
     (r"\bAdvance\b", "예비"), (r"\bRev\.?\b", "수정"),
-    (r"\bSA\b", "계절조정"), (r"\bNSA\b", "비조정"),
+    (r"\bNSA\b", "비조정"), (r"\bSA\b", "계절조정"),
 ]
 
 
@@ -126,7 +134,7 @@ def fetch_info():
 
 
 def unwrap(body):
-    """ASMX 가 JSON 을 <string> 으로 한 번 감싸서 주기 때문에 벗겨냄"""
+    """ASMX 가 JSON 을 <string> 으로 감싸서 주기 때문에 벗겨냄"""
     m = re.search(r"<string[^>]*>(.*)</string>", body, re.DOTALL)
     inner = m.group(1) if m else body
     return (inner.replace("&lt;", "<").replace("&gt;", ">")
@@ -134,9 +142,8 @@ def unwrap(body):
 
 
 def fetch_calendar():
-    info = fetch_info()
     url = "%s?info=%s&TimeOffset=0" % (
-        CAL_URL, urllib.parse.quote('"%s"' % info, safe=""))
+        CAL_URL, urllib.parse.quote('"%s"' % fetch_info(), safe=""))
     data = json.loads(unwrap(http_get(url, timeout=45)))
     if not isinstance(data, list):
         raise RuntimeError("일정 응답이 배열이 아님: %s" % type(data))
@@ -149,8 +156,8 @@ _DT_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})")
 
 
 def parse_utc(s):
-    """RealDate 문자열 -> UTC datetime. 파이썬 기본 파서는 소수점 자릿수에
-    까다로워서 예전에 조용히 틀린 시각을 쓴 적이 있음. 정규식으로 직접 자름."""
+    """RealDate -> UTC datetime. 파이썬 기본 파서는 소수점 자릿수에 까다로워서
+    예전에 조용히 틀린 시각을 쓴 적이 있음. 정규식으로 직접 자름."""
     m = _DT_RE.match((s or "").strip())
     if not m:
         return None
@@ -182,35 +189,59 @@ def pick_events(cal, start_utc, end_utc):
 _tr_cache = {}
 
 
-def translate_to_ko(text):
-    if text in _tr_cache:
-        return _tr_cache[text]
-    result = None
-    try:
-        params = urllib.parse.urlencode(
-            {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text})
-        req = urllib.request.Request(
-            "%s?%s" % (GOOGLE_UNOFFICIAL_URL, params),
-            headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode())
-        joined = "".join(seg[0] for seg in data[0] if seg and seg[0]).strip()
-        result = joined or None
-    except Exception as e:
-        print("번역 실패(%s): %s" % (text[:40], e))
-    _tr_cache[text] = result
-    return result
+def _google(text):
+    params = urllib.parse.urlencode(
+        {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text})
+    req = urllib.request.Request(
+        "%s?%s" % (GOOGLE_UNOFFICIAL_URL, params),
+        headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        data = json.loads(resp.read().decode())
+    return "".join(seg[0] for seg in data[0] if seg and seg[0])
+
+
+def warm_translations(titles, chunk=20):
+    """제목들을 한 번에 묶어서 번역해 캐시에 채운다.
+    주간 미리보기는 제목이 60개 넘게 나오는데 하나씩 부르면 요청이 너무 많아짐.
+    줄 수가 안 맞으면 그 묶음만 하나씩 다시 부른다."""
+    todo = [t for t in dict.fromkeys(titles)
+            if t and t not in _tr_cache and t.lower() not in TITLE_OVERRIDE]
+    for i in range(0, len(todo), chunk):
+        part = todo[i:i + chunk]
+        try:
+            got = _google("\n".join(part)).split("\n")
+            if len(got) == len(part):
+                for src, ko in zip(part, got):
+                    _tr_cache[src] = ko.strip() or None
+                time.sleep(0.3)
+                continue
+            print("묶음 번역 줄 수 불일치(%d vs %d), 개별 재시도" % (len(got), len(part)))
+        except Exception as e:
+            print("묶음 번역 실패, 개별 재시도:", e)
+        for src in part:
+            try:
+                _tr_cache[src] = (_google(src) or "").strip() or None
+            except Exception as e:
+                print("번역 실패(%s): %s" % (src[:40], e))
+                _tr_cache[src] = None
+            time.sleep(0.2)
 
 
 def to_korean(title):
-    """번역 실패해도 원문으로 계속 진행. 봇이 멈추면 안 됨."""
+    """번역이 실패해도 원문으로 계속 진행한다. 봇이 멈추면 안 됨."""
     raw = (title or "").strip()
     if not raw:
         return ""
     hit = TITLE_OVERRIDE.get(raw.lower())
     if hit:
         return hit
-    ko = translate_to_ko(raw) or raw
+    ko = _tr_cache.get(raw)
+    if ko is None:
+        try:
+            ko = (_google(raw) or "").strip() or raw
+        except Exception:
+            ko = raw
+        _tr_cache[raw] = ko
     for pat, rep in POST_FIX:
         ko = re.sub(pat, rep, ko)
     return re.sub(r"\s+", " ", ko).strip()
@@ -223,33 +254,48 @@ def val(x):
     return "" if s in ("", "-", "N/A") else s
 
 
-def build_message(events, now_utc, end_utc, tz_label):
-    head = "📅 주요 경제일정 (최고중요도)\n%s ~ %s · 한국시간" % (
-        now_utc.astimezone(KST).strftime("%m/%d %H:%M"),
-        end_utc.astimezone(KST).strftime("%m/%d %H:%M"))
+def flag_of(e):
+    f = FLAG.get((e.get("CountryCode") or "").upper(), "")
+    if not f and (e.get("Company") or {}).get("Name"):
+        f = "💼"
+    return f
 
+
+def day_line(day):
+    return "\n── %d월 %d일 (%s)" % (day.month, day.day, WEEKDAY_KO[day.weekday()])
+
+
+def pack(header, blocks):
+    """텔레그램 길이 제한에 맞춰 필요하면 여러 통으로 나눔"""
+    msgs, cur = [], header
+    for b in blocks:
+        if len(cur) + len(b) + 1 > TG_LIMIT:
+            msgs.append(cur)
+            cur = header + " (이어서)"
+        cur += "\n" + b
+    msgs.append(cur)
+    return msgs
+
+
+def build_daily(events):
+    """하루치. 예상치·이전치까지 붙인다."""
     if not events:
-        return ["%s\n\n앞으로 24시간 안에 예정된 최고중요도 일정이 없습니다." % head]
+        return ["%s\n\n앞으로 24시간 안에 예정된 일정이 없습니다." % HEADER_DAY]
+
+    warm_translations([e.get("Title") for _, e in events[:MAX_EVENTS_DAY]])
 
     blocks, cur_day = [], None
-    for t, e in events[:MAX_EVENTS]:
+    for t, e in events[:MAX_EVENTS_DAY]:
         k = t.astimezone(KST)
-        day = k.date()
-        if day != cur_day:
-            cur_day = day
-            blocks.append("\n── %d월 %d일 (%s)" % (
-                day.month, day.day, WEEKDAY_KO[day.weekday()]))
+        if k.date() != cur_day:
+            cur_day = k.date()
+            blocks.append(day_line(cur_day))
 
-        flag = FLAG.get((e.get("CountryCode") or "").upper(), "")
-        if not flag and (e.get("Company") or {}).get("Name"):
-            flag = "💼"
-        bolt = "⚡" if e.get("Breaking") is True else ""
-
-        line = "%s %s%s %s" % (k.strftime("%H:%M"), bolt, flag, to_korean(e.get("Title")))
+        line = "%s %s %s" % (k.strftime("%H:%M"), flag_of(e), to_korean(e.get("Title")))
         sp = val(e.get("Speaker"))
         if sp:
             line += " — %s" % sp
-        blocks.append(line.replace("  ", " ").strip())
+        blocks.append(re.sub(r"\s+", " ", line).strip())
 
         f, p = val(e.get("Forecast")), val(e.get("Previous"))
         if f or p:
@@ -260,18 +306,52 @@ def build_message(events, now_utc, end_utc, tz_label):
                 bits.append("이전 %s" % p)
             blocks.append("      " + " · ".join(bits))
 
-    if len(events) > MAX_EVENTS:
-        blocks.append("\n(그 외 %d건 생략)" % (len(events) - MAX_EVENTS))
+    if len(events) > MAX_EVENTS_DAY:
+        blocks.append("\n(그 외 %d건 생략)" % (len(events) - MAX_EVENTS_DAY))
+    return pack(HEADER_DAY, blocks)
 
-    # 텔레그램 길이 제한에 맞춰 필요하면 나눠 보냄
-    msgs, cur = [], head
-    for b in blocks:
-        if len(cur) + len(b) + 1 > TG_LIMIT:
-            msgs.append(cur)
-            cur = "📅 (이어서)"
-        cur += "\n" + b
-    msgs.append(cur)
-    return msgs
+
+def build_weekly(events, start_utc):
+    """7일치. 한 주에 46건쯤 나오므로 예상치는 빼고,
+    같은 시각·같은 나라에서 동시에 나오는 지표는 한 줄로 묶는다.
+    (예: 호주 CPI 계열 5개가 전부 같은 시각에 나옴)"""
+    end = start_utc + timedelta(days=7)
+    s, e_ = start_utc.astimezone(KST), end.astimezone(KST)
+    head = "%s\n%d월 %d일(%s) ~ %d월 %d일(%s)" % (
+        HEADER_WEEK, s.month, s.day, WEEKDAY_KO[s.weekday()],
+        e_.month, e_.day, WEEKDAY_KO[e_.weekday()])
+
+    if not events:
+        return ["%s\n\n이번주 예정된 일정이 없습니다." % head]
+
+    use = events[:MAX_EVENTS_WEEK]
+    warm_translations([e.get("Title") for _, e in use])
+
+    groups, order = {}, []
+    for t, e in use:
+        k = t.astimezone(KST)
+        key = (k.date(), k.strftime("%H:%M"),
+               (e.get("CountryCode") or "").upper(), flag_of(e))
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(to_korean(e.get("Title")))
+
+    blocks, cur_day = [], None
+    for key in order:
+        day, hhmm, _, flag = key
+        if day != cur_day:
+            cur_day = day
+            blocks.append(day_line(day))
+        titles = groups[key]
+        text = " / ".join(titles[:3])
+        if len(titles) > 3:
+            text += " 외 %d건" % (len(titles) - 3)
+        blocks.append(re.sub(r"\s+", " ", "%s %s %s" % (hhmm, flag, text)).strip())
+
+    if len(events) > MAX_EVENTS_WEEK:
+        blocks.append("\n(그 외 %d건 생략)" % (len(events) - MAX_EVENTS_WEEK))
+    return pack(head, blocks)
 
 
 # ---------------------------------------------------------------- 전송
@@ -280,7 +360,8 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
     """[원칙] 응답을 받았을 때만 전송 여부를 판단한다.
     타임아웃은 이미 전달됐을 수 있으므로 재시도하지 않는다(중복 폭탄 방지)."""
     data = urllib.parse.urlencode(
-        {"chat_id": chat_id, "text": msg, "disable_web_page_preview": "true"}).encode()
+        {"chat_id": chat_id, "text": msg,
+         "disable_web_page_preview": "true"}).encode()
     url = "https://api.telegram.org/bot%s/sendMessage" % bot_token
 
     for attempt in range(max_retry + 1):
@@ -336,28 +417,38 @@ def save_state(state):
     os.replace(tmp, STATE_PATH)
 
 
+def find_slot(key):
+    for s in SLOTS:
+        if s[0] == key:
+            return s
+    raise KeyError(key)
+
+
 def due_slot(now_utc, state):
-    """지금 보내야 할 슬롯이 있으면 (키, 지역명, 현지날짜) 를 돌려줌"""
-    for key, tzname, label in SLOTS:
+    """지금 보내야 할 슬롯을 돌려줌. 없으면 None."""
+    for slot in SLOTS:
+        key, tzname, (hh, mm), dow, _hours, label = slot
         local = now_utc.astimezone(ZoneInfo(tzname))
-        after = (local.hour, local.minute) >= (SEND_HOUR, SEND_MIN)
-        not_too_late = local.hour < LATE_LIMIT_HOUR
+        day_ok = dow is None or local.weekday() == dow
+        after = (local.hour, local.minute) >= (hh, mm)
+        in_time = local.hour < LATE_LIMIT_HOUR
         today = local.strftime("%Y-%m-%d")
         already = state.get(key) == today
-        print("  %-3s %s 현지 %s | 시각도달=%s 유효시간=%s 오늘발송=%s"
-              % (key, label, local.strftime("%m-%d %H:%M"),
-                 after, not_too_late, already))
-        if after and not_too_late and not already:
-            return key, label, today
-    return None, None, None
+        print("  %-6s %-12s 현지 %s | 요일=%s 시각도달=%s 유효=%s 발송함=%s"
+              % (key, label, local.strftime("%m-%d %H:%M %a"),
+                 day_ok, after, in_time, already))
+        if day_ok and after and in_time and not already:
+            return slot, today
+    return None, None
 
 
 # ---------------------------------------------------------------- 본체
 
 def main():
-    mode = (sys.argv[1] if len(sys.argv) > 1 else "").lower()
+    mode = (sys.argv[1] if len(sys.argv) > 1 else "normal").lower()
+    dry = mode.endswith("dry")
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-    if not token and mode != "dry":
+    if not token and not dry:
         raise SystemExit("TELEGRAM_BOT_TOKEN 이 없음")
 
     now_utc = datetime.now(timezone.utc)
@@ -366,46 +457,48 @@ def main():
         now_utc.astimezone(KST).strftime("%m-%d %H:%M")))
 
     state = load_state()
-    if mode in ("test", "dry"):
-        slot_key, label, today = "manual", "수동", None
-        print("수동 실행 — 슬롯 판단 건너뜀")
-    else:
-        slot_key, label, today = due_slot(now_utc, state)
-        if not slot_key:
+    if mode == "normal":
+        slot, today = due_slot(now_utc, state)
+        if slot is None:
             print("지금은 보낼 슬롯이 아님. 종료")
             return
+    else:
+        slot = find_slot("weekly" if mode.startswith("weekly") else "kst")
+        today = None
+        print("수동 실행(%s) — 슬롯 판단 건너뜀" % mode)
 
-    print("발송 슬롯: %s (%s)" % (slot_key, label))
+    key, _tz, _at, _dow, hours, label = slot
+    print("발송 슬롯: %s (%s), 앞으로 %d시간" % (key, label, hours))
 
-    end_utc = now_utc + timedelta(hours=WINDOW_HOURS)
     cal = fetch_calendar()
     print("일정 %d건 수신" % len(cal))
-    events = pick_events(cal, now_utc, end_utc)
-    print("24시간 내 최고중요도 %d건" % len(events))
+    events = pick_events(cal, now_utc, now_utc + timedelta(hours=hours))
+    print("대상 %d건" % len(events))
 
-    msgs = build_message(events, now_utc, end_utc, label)
+    msgs = (build_weekly(events, now_utc) if key == "weekly"
+            else build_daily(events))
 
-    if mode == "dry":
+    if dry:
         for m in msgs:
             print("-" * 60)
             print(m)
         return
 
-    sent_all = True
+    ok = True
     for i, m in enumerate(msgs):
         if i:
             time.sleep(3.5)          # 채널 분당 20건 제한 회피
         if not send_telegram(token, CHAT_ID, m):
-            sent_all = False
+            ok = False
 
-    # 전송을 시도했으면(설령 실패했더라도) 오늘치는 끝난 것으로 기록한다.
-    # 실패했다고 다시 깨어날 때마다 재시도하면 중복이 나갈 위험이 더 크다.
+    # 전송을 시도했으면 실패했더라도 오늘치는 끝난 것으로 기록한다.
+    # 실패했다고 깨어날 때마다 재시도하면 중복이 나갈 위험이 더 크다.
     if today:
-        state[slot_key] = today
+        state[key] = today
         save_state(state)
-        print("상태 기록: %s = %s" % (slot_key, today))
+        print("상태 기록: %s = %s" % (key, today))
 
-    print("전송 완료" if sent_all else "일부 전송 실패")
+    print("전송 완료" if ok else "일부 전송 실패")
 
 
 if __name__ == "__main__":
