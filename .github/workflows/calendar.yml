@@ -1,24 +1,26 @@
 # 저장 위치: .github/workflows/calendar.yml
 #
-# 경제일정 하루 2회 발송.
-#   한국시간 06:25  = UTC 21:25
-#   미동부   06:25  = UTC 10:25(서머타임) / 11:25(겨울)
+# 경제일정 발송.
+#   한국 06:25  = UTC 21:25
+#   미동부 06:25 = UTC 10:25(서머타임) / 11:25(겨울)
+#   주간(월 06:00) = 일요일 UTC 21:00
 #
 # 깃허브 예약은 수십 분씩 밀리는 일이 흔해서 슬롯마다 예비 시각을 더 걸어둔다.
-# 여러 번 깨어나도 스크립트가 .state/cal_sent.json 을 보고 하루 한 번만 보낸다.
+# 여러 번 깨어나도 스크립트가 .state/cal_sent.json 을 보고 슬롯별 하루 한 번만 보낸다.
 name: Economic Calendar
 
 on:
   schedule:
-    - cron: '25,55 21,22 * * *'   # 한국 아침 슬롯 (KST 06:25 / 06:55 / 07:25 / 07:55)
-    - cron: '25,55 10,11 * * *'   # 미국 아침 슬롯 (서머타임 양쪽 다 커버)
+    - cron: '0,30 21 * * 0'       # 주간 미리보기 (한국 월요일 06:00 / 06:30)
+    - cron: '25,55 21,22 * * *'   # 한국 아침 (06:25 ~ 07:55)
+    - cron: '25,55 10,11 * * *'   # 미국 아침 (서머타임 양쪽 커버)
   workflow_dispatch:
     inputs:
       mode:
         description: '실행 방식'
         type: choice
-        default: test
-        options: [test, dry, normal]
+        default: dry
+        options: [dry, test, weekly-dry, weekly-test, normal]
 
 permissions:
   contents: write
@@ -49,8 +51,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           MODE="${{ github.event.inputs.mode }}"
-          [ "$MODE" = "normal" ] && MODE=""
-          python3 scripts/calendar_relay.py $MODE
+          [ -z "$MODE" ] && MODE=normal
+          python3 scripts/calendar_relay.py "$MODE"
 
       - name: Commit state
         if: always()
