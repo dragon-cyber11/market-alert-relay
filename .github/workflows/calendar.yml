@@ -1,0 +1,74 @@
+# 저장 위치: .github/workflows/calendar.yml
+#
+# 경제일정 하루 2회 발송.
+#   한국시간 06:25  = UTC 21:25
+#   미동부   06:25  = UTC 10:25(서머타임) / 11:25(겨울)
+#
+# 깃허브 예약은 수십 분씩 밀리는 일이 흔해서 슬롯마다 예비 시각을 더 걸어둔다.
+# 여러 번 깨어나도 스크립트가 .state/cal_sent.json 을 보고 하루 한 번만 보낸다.
+name: Economic Calendar
+
+on:
+  schedule:
+    - cron: '25,55 21,22 * * *'   # 한국 아침 슬롯 (KST 06:25 / 06:55 / 07:25 / 07:55)
+    - cron: '25,55 10,11 * * *'   # 미국 아침 슬롯 (서머타임 양쪽 다 커버)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '실행 방식'
+        type: choice
+        default: test
+        options: [test, dry, normal]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: economic-calendar
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      # 예약 잡은 대기열에 들어간 시점의 저장소 상태로 시작한다.
+      # 밀려서 늦게 실행되면 옛날 상태로 도는 문제가 있어 최신으로 맞춘다.
+      - name: Sync to latest
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Post calendar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          [ "$MODE" = "normal" ] && MODE=""
+          python3 scripts/calendar_relay.py $MODE
+
+      - name: Commit state
+        if: always()
+        run: |
+          [ -f .state/cal_sent.json ] || exit 0
+          git config user.name "relay-bot"
+          git config user.email "relay-bot@users.noreply.github.com"
+          for i in 1 2 3 4 5; do
+            git add .state/cal_sent.json
+            git commit -m "calendar state" || true
+            if git push; then
+              echo "상태 저장 완료"
+              exit 0
+            fi
+            # 릴레이 잡이 동시에 커밋하는 중일 수 있음.
+            # rebase 는 상태파일에서 충돌나면 영영 막히므로 쓰지 않는다.
+            git fetch origin main
+            git reset --mixed origin/main
+            sleep 3
+          done
+          echo "상태 저장 실패 (다음 실행에서 재시도)"
