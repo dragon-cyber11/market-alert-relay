@@ -76,7 +76,8 @@ def refresh_calendar(now_epoch):
         start = datetime.fromtimestamp(now_epoch, timezone.utc)
         end = datetime.fromtimestamp(now_epoch + LOOKAHEAD_SECONDS, timezone.utc)
         raw = cal.fetch_calendar()
-        _cal_cache = cal.pick_events(raw, start, end)
+        # include_extra=True 로 EIA 석유재고(ImpID 2~3)도 프리알림/원출처 감시 대상에 포함
+        _cal_cache = cal.pick_events(raw, start, end, include_extra=True)
         _cal_fetched_at = now_epoch
         print("[프리알림] 일정 %d건 갱신 (앞으로 %d시간)"
               % (len(_cal_cache), LOOKAHEAD_SECONDS // 3600))

@@ -31,6 +31,8 @@
 #   번역 호출이 0.5초 이상 걸린다. 이 모듈의 존재 이유가 그 시간을 줄이는
 #   것이므로 원문 숫자를 그대로 즉시 보낸다. 한국어 해설은 뒤이어 오는
 #   파이낸셜주스 헤드라인이 채워 준다.
+import csv
+import io
 import json
 import os
 import re
@@ -337,9 +339,65 @@ def fetch_fomc():
     return None
 
 
+# EIA 주간 석유재고. 밸런스시트 CSV(키 불필요)를 직접 받아 주간 변화(백만 배럴)를 뽑는다.
+# 헤더의 STUB_1 라벨과 열 위치는 실측으로 확인:
+#   0=라벨, 1=이번주, 2=지난주, 3=Difference(주간 변화) ...
+# FJ 캘린더 Previous(17.423M 등)가 이 Difference 열과 정확히 일치함을 확인했다.
+_EIA_URL = "https://ir.eia.gov/wpsr/table1.csv"
+_EIA_ROWS = [
+    ("Commercial (Excluding SPR)", "crude", "원유"),
+    ("Total Motor Gasoline", "gasoline", "휘발유"),
+    ("Distillate Fuel Oil", "distillate", "증류유"),
+]
+
+
+def _mb(diff):
+    """주간 변화(백만 배럴)를 부호 붙여 표기. +는 재고 증가(약세), -는 감소(강세).
+    반올림해서 0 이면 부호 없이 0.0M (−0.0M 같은 표기 방지)."""
+    r = round(diff, 1)
+    if r == 0:
+        return "0.0M"
+    return "%s%.1fM" % ("+" if r > 0 else "-", abs(r))
+
+
+def fetch_eia():
+    body = http_get(_EIA_URL, BROWSER_UA)
+    rows = [r for r in csv.reader(io.StringIO(body)) if r]
+    if not rows:
+        return None
+    header = rows[0]
+    week = (header[1].strip() if len(header) > 1 else "")   # 예: 8/7/26
+    by_label = {r[0].strip(): r for r in rows}
+    items = []
+    for label, kind, ko in _EIA_ROWS:
+        r = by_label.get(label)
+        if not r or len(r) < 4:
+            continue
+        try:
+            diff = float(r[3].replace(",", ""))
+        except ValueError:
+            continue
+        items.append(_item(kind, ko, _mb(diff)))
+    if not items:
+        return None
+    # 이번주 날짜가 릴리스마다 바뀌므로 지문에 넣으면 새 발표 판정이 확실해진다
+    fingerprint = "%s|%s" % (week, "".join(i["value"] for i in items))
+    week_label = week.rsplit("/", 1)[0] if "/" in week else week   # 8/7/26 -> 8/7
+    return fingerprint, {"month": "%s 주간" % week_label if week_label else "", "items": items}
+
+
 # 캘린더 하위 항목 제목 -> 종류표. 추출 항목의 kind 와 짝지어 예상/이전치를 붙인다.
 def calendar_kind(title):
     t = (title or "").lower()
+    # EIA 석유재고 (원유/휘발유/증류유). core/yoy 판정보다 먼저 걸러야 오분류가 없다.
+    if "cushing" in t:
+        return "cushing"
+    if "gasoline" in t:
+        return "gasoline"
+    if "distillate" in t:
+        return "distillate"
+    if "crude" in t and ("invent" in t or "stock" in t):
+        return "crude"
     if "unemployment" in t:
         return "unemp"
     if "payroll" in t or "nonfarm" in t or "non-farm" in t:
@@ -363,6 +421,9 @@ WATCHERS = [
     {"key": "fomc",   "label": "🇺🇸 FOMC 금리결정",
      "cc": "US", "pattern": r"FOMC (rate|statement|interest)|fed(eral)? funds rate decision",
      "fetch": fetch_fomc},
+    {"key": "eia",    "label": "🛢️ EIA 석유재고",
+     "cc": "US", "pattern": r"EIA (Crude|Gasoline|Distillate)[^,]*Invent",
+     "fetch": fetch_eia},
 ]
 
 _last_poll = {}     # key -> 마지막 확인 시각
