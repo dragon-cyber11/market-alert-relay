@@ -196,15 +196,16 @@ def fetch_cpi():
         return None
     t = to_text(http_get("https://www.bls.gov/news.release/cpi.nr0.htm", ua))
     items = []
+    # "N percent" 는 선택적. 무변동 달은 "was unchanged in July" 처럼 percent 가 없다.
     mom = re.search(r"CPI-U\)?\s+(increased|declined|rose|fell|edged up|edged down|"
-                    r"was unchanged|changed little)\s*([\d.]+)?\s*percent", t, re.I)
+                    r"was unchanged|changed little)(?:\s+([\d.]+)\s+percent)?", t, re.I)
     month = ""
     if mom:
         month = _month_ko(t, mom.group(0))
         val = "0.0%" if mom.group(2) is None else _signed(mom.group(1), mom.group(2))
         items.append(_item("mom", "전월", val))
-    core = re.search(r"less food and energy (rose|increased|declined|fell|was unchanged)\s*"
-                     r"([\d.]+)?\s*percent", t, re.I)
+    core = re.search(r"less food and energy (rose|increased|declined|fell|was unchanged)"
+                     r"(?:\s+([\d.]+)\s+percent)?", t, re.I)
     if core:
         items.append(_item("core", "근원", "0.0%" if core.group(2) is None
                            else _signed(core.group(1), core.group(2))))
@@ -386,6 +387,63 @@ def fetch_eia():
     return fingerprint, {"month": "%s 주간" % week_label if week_label else "", "items": items}
 
 
+def fetch_ppi():
+    # CPI 와 같은 BLS 인프라. 문장 구조만 다르다("for final demand ...").
+    ua = bls_ua()
+    if not ua:
+        return None
+    t = to_text(http_get("https://www.bls.gov/news.release/ppi.nr0.htm", ua))
+    items = []
+    # "N percent" 는 선택적. 무변동 달은 "was unchanged in July" 처럼 percent 가 없다.
+    mom = re.search(r"Producer Price Index for final demand\s+(was unchanged|increased|"
+                    r"declined|rose|fell|edged up|edged down)(?:\s+([\d.]+)\s+percent)?", t, re.I)
+    month = ""
+    if mom:
+        month = _month_ko(t, mom.group(0))
+        items.append(_item("mom", "전월", "0.0%" if mom.group(2) is None
+                           else _signed(mom.group(1), mom.group(2))))
+    core = re.search(r"final demand less foods,? energy,? and trade services\s+"
+                     r"(increased|declined|rose|fell|was unchanged)(?:\s+([\d.]+)\s+percent)?", t, re.I)
+    if core:
+        items.append(_item("core", "근원", "0.0%" if core.group(2) is None
+                           else _signed(core.group(1), core.group(2))))
+    yoy = re.search(r"final demand (increased|advanced|rose|declined|fell)\s+([\d.]+)\s+percent"
+                    r"[^.]{0,40}?12[ -]month", t, re.I)
+    if yoy:
+        items.append(_item("yoy", "전년", _signed(yoy.group(1), yoy.group(2))))
+    if not items:
+        s = first_sentences(t, r"The Producer Price Index for final demand")
+        if not s:
+            return None
+        return s, {"month": "", "items": [_item("plain", "", s)]}
+    return _fp(month, items), {"month": month, "items": items}
+
+
+# GDP 는 BEA RSS(PCE 와 같은 피드)에서. 단 RSS 엔 지역별 GDP(주/카운티/속령)가
+# 잔뜩 섞여 있어, 전국 분기 GDP 발표만 골라야 한다("GDP (Advance/Second/Third
+# Estimate), Nth Quarter" 형식 + 'at an annual rate' 문구).
+_GDP_EST = [("advance", "속보"), ("second", "잠정"), ("third", "확정")]
+
+
+def fetch_gdp():
+    body = http_get("https://apps.bea.gov/rss/rss.xml", BROWSER_UA)
+    for it in _rss_items(body):
+        title = _tag(it, "title")
+        if not re.match(r"GDP \(.*Estimate", title, re.I):     # 전국 분기 GDP 만
+            continue
+        desc = _tag(it, "description")
+        m = re.search(r"(increased|decreased)\s+at an annual rate of\s+([\d.]+)\s+percent",
+                      desc, re.I)
+        if not m:
+            continue
+        q = re.search(r"(\d)(?:st|nd|rd|th)\s+Quarter", title, re.I)
+        est = next((ko for k, ko in _GDP_EST if k in title.lower()), "")
+        label = " ".join(x for x in ["%s분기" % q.group(1) if q else "", est] if x)
+        return "%s|%s" % (title, m.group(2)), {
+            "month": label, "items": [_item("gdp", "성장률(연율)", _signed(m.group(1), m.group(2)))]}
+    return None
+
+
 # 캘린더 하위 항목 제목 -> 종류표. 추출 항목의 kind 와 짝지어 예상/이전치를 붙인다.
 def calendar_kind(title):
     t = (title or "").lower()
@@ -398,6 +456,9 @@ def calendar_kind(title):
         return "distillate"
     if "crude" in t and ("invent" in t or "stock" in t):
         return "crude"
+    # GDP 성장률(가격지수 GDP Price Index 는 제외 -> mom/yoy 로 흐르게)
+    if ("gdp" in t or "gross domestic" in t) and "price" not in t:
+        return "gdp"
     if "unemployment" in t:
         return "unemp"
     if "payroll" in t or "nonfarm" in t or "non-farm" in t:
@@ -424,6 +485,10 @@ WATCHERS = [
     {"key": "eia",    "label": "🛢️ EIA 석유재고",
      "cc": "US", "pattern": r"EIA (Crude|Gasoline|Distillate)[^,]*Invent",
      "fetch": fetch_eia},
+    {"key": "ppi",    "label": "🇺🇸 미국 PPI",
+     "cc": "US", "pattern": r"\bPPI\b|producer price", "fetch": fetch_ppi},
+    {"key": "gdp",    "label": "🇺🇸 미국 GDP",
+     "cc": "US", "pattern": r"\bGDP\b|gross domestic", "fetch": fetch_gdp},
 ]
 
 _last_poll = {}     # key -> 마지막 확인 시각
