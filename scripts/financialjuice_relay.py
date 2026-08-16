@@ -595,6 +595,9 @@ def run_loop(duration_seconds):
     # 일정은 프리알림이 이미 30분마다 갱신해 둔 것을 그대로 쓴다(중복 호출 방지).
     try:
         import release_watch
+        # 어떤 감시가 켜졌는지 시작할 때 한 번 알림. 발표 시각에만 로그가 찍히면
+        # CONTACT_EMAIL 시크릿이 먹었는지 몇 주 뒤에나 알 수 있음
+        release_watch.bls_ua()
     except Exception as e:
         release_watch = None
         print("지표 원출처 감시 사용 안 함:", repr(e)[:200])
