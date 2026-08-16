@@ -290,20 +290,24 @@ def translate_to_ko(text):
 # 마지막 전송 결과를 하트비트에 남기기 위한 기록용 (뉴스가 안 올 때 원인 파악용)
 LAST_SEND_STATUS = []
 
-# 🚨(사이렌)을 움직이는 커스텀 이모지로 보내고 싶을 때, 그 custom_emoji_id 를
-# 이 환경변수에 넣는다. 비어 있으면 평범한 🚨 정지 이모지로 나간다.
+# 🚨(사이렌)을 움직이는 커스텀 이모지로 보낸다. custom_emoji_id 는 공개
+# 스티커셋(t.me/addemoji/Decoration_Pack)의 공개 식별자라 비밀이 아니므로 그냥 박는다.
+# 다른 이모지로 바꾸고 싶으면 이 값만 갈면 된다(환경변수로도 덮어쓸 수 있음).
 #   [주의] 텔레그램은 봇이 custom_emoji 를 보내려면 Fragment 에서 사용자명을 산
-#   봇이어야 한다. 자격이 없으면 400 을 주는데, 그때 이 엔티티를 빼고 한 번 더
-#   보내(=평범한 🚨) 알림 자체가 사라지지 않게 한다. (send_telegram 의 폴백)
+#   봇이어야 한다. 자격이 없으면 400 을 주는데, 그때 엔티티를 빼고 한 번 더 보내
+#   (=평범한 🚨) 알림이 사라지지 않게 하고, 이후엔 이 프로세스 동안 엔티티를 아예
+#   안 붙여서(_SIREN_DISABLED) 매 알림마다 400→재시도로 요청이 2배 되는 걸 막는다.
 SIREN_CHAR = "\U0001F6A8"
-SIREN_CUSTOM_EMOJI_ID = os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
+SIREN_CUSTOM_EMOJI_ID = (os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
+                         or "5213285132709929474")
+_SIREN_DISABLED = False    # 이 프로세스에서 커스텀 이모지가 거부된 적이 있으면 True
 
 
 def _siren_entities(msg):
-    """메시지에 🚨 가 있고 custom_emoji_id 가 설정돼 있으면, 그 자리를 움직이는
-    커스텀 이모지로 바꾸는 entities(JSON 문자열)를 만든다. 없으면 None.
+    """메시지에 🚨 가 있으면 그 자리를 움직이는 커스텀 이모지로 바꾸는
+    entities(JSON 문자열)를 만든다. 없거나 이미 거부된 적이 있으면 None.
     오프셋/길이는 텔레그램 규격대로 UTF-16 코드 단위로 센다(🚨 는 2 단위)."""
-    if not SIREN_CUSTOM_EMOJI_ID:
+    if not SIREN_CUSTOM_EMOJI_ID or _SIREN_DISABLED:
         return None
     idx = msg.find(SIREN_CHAR)
     if idx < 0:
@@ -377,7 +381,11 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
                 # 엔티티를 빼고 평범한 🚨 로 딱 한 번 더 시도해서 알림이 사라지지
                 # 않게 한다. 그래도 400 이면 진짜 메시지 문제라 건너뛴다.
                 if entities is not None:
-                    print("텔레그램 400, 커스텀 이모지 빼고 재시도: %s" % body)
+                    # 커스텀 이모지가 거부됐으니 이 프로세스 동안은 더 시도하지 않는다.
+                    # (봇 자격 미달이면 매 알림마다 400 이 나므로 요청 낭비를 막음)
+                    global _SIREN_DISABLED
+                    _SIREN_DISABLED = True
+                    print("텔레그램 400, 커스텀 이모지 빼고 재시도(이후 비활성): %s" % body)
                     try:
                         req = urllib.request.Request(url, data=build(False))
                         with urllib.request.urlopen(req, timeout=20) as r:
