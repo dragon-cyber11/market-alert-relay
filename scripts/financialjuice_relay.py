@@ -87,9 +87,19 @@ NOISE_KEYWORDS = [
 ]
 _NOISE_PATTERNS = [re.compile(re.escape(k), re.IGNORECASE) for k in NOISE_KEYWORDS]
 
+# 본문 없이 제목만 오는 반복성 잡음. 정규식으로 단어 경계를 써서 정상 뉴스 오탐을 막는다.
+#   MOC/MOO Imbalance : 장 마감/개장 주문 불균형. 실제 수치는 사이트 본문에 있어
+#                       제목("MOC Imbalance")만 텔레그램으로 오면 알맹이가 없다.
+#                       단순 키워드 "MOC" 로 넣으면 "Mocha port" 같은 정상 뉴스가
+#                       걸리므로 뒤에 imbalance 가 붙은 경우만 \b 로 잡는다.
+NOISE_REGEXES = [
+    re.compile(r"\bMO[OC]\s+imbalance\b", re.IGNORECASE),
+]
+
 
 def is_noise(title):
-    return any(p.search(title) for p in _NOISE_PATTERNS)
+    return (any(p.search(title) for p in _NOISE_PATTERNS)
+            or any(p.search(title) for p in NOISE_REGEXES))
 
 
 # 파이낸셜주스가 정기적으로 올리는 자체 게시글. 제목만 오고 본문은 사이트 안쪽에 있어서
