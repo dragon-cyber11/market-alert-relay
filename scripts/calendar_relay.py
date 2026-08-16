@@ -60,6 +60,7 @@ LATE_LIMIT_HOUR = 11      # 예약이 이 시각을 넘게 밀리면 그 날은 
 MAX_EVENTS_DAY = 40
 MAX_EVENTS_WEEK = 120
 TG_LIMIT = 3800           # 텔레그램 한 통 한계(4096)보다 여유 있게
+SEND_GAP_SECONDS = 3.5    # 여러 통을 이어 보낼 때 간격. 채널 분당 20건 제한 회피
 
 # (키, 시간대, (시,분), 요일제한(0=월, None=매일), 커버시간, 라벨)
 SLOTS = [
@@ -516,7 +517,7 @@ def main():
     ok = True
     for i, m in enumerate(msgs):
         if i:
-            time.sleep(3.5)          # 채널 분당 20건 제한 회피
+            time.sleep(SEND_GAP_SECONDS)
         if not send_telegram(token, CHAT_ID, m):
             ok = False
 

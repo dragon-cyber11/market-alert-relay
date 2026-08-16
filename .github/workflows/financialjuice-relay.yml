@@ -65,6 +65,8 @@ jobs:
       - name: Poll feed continuously and send new items to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # BLS(미국 CPI/고용)는 UA 에 이메일이 있어야 응답함. 없으면 그 두 건만 건너뜀
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
@@ -105,7 +107,7 @@ jobs:
               git reset --mixed origin/main -q || true
               # 파일마다 따로 add. 한 번에 나열하면 셋 중 하나라도 없을 때(첫 배포 직후엔
               # fj_sent_titles.json 이 없음) git add 가 통째로 실패해서 상태 커밋이 조용히 사라짐
-              for f in .state/fj_last_newsid.txt .state/fj_heartbeat.txt .state/fj_sent_titles.json .state/cal_prealert.json; do
+              for f in .state/fj_last_newsid.txt .state/fj_heartbeat.txt .state/fj_sent_titles.json .state/cal_prealert.json .state/release_watch.json; do
                 if [ -f "$f" ]; then git add "$f"; fi
               done
               if git diff --cached --quiet; then
@@ -160,6 +162,7 @@ jobs:
             [ -f .state/fj_heartbeat.txt ] && git add .state/fj_heartbeat.txt
             [ -f .state/fj_sent_titles.json ] && git add .state/fj_sent_titles.json
             [ -f .state/cal_prealert.json ] && git add .state/cal_prealert.json
+            [ -f .state/release_watch.json ] && git add .state/release_watch.json
             if git diff --cached --quiet; then
               echo "커밋할 변경사항 없음"
               break
