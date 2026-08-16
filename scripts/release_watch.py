@@ -120,15 +120,86 @@ def _tag(chunk, name):
     return html_mod.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", v))).strip()
 
 
+# ---------------------------------------------------------------- 숫자 다듬기
+#
+# 원문 문단을 그대로 던지면 영어라 보기 불편하다. 지표는 4개로 고정이고
+# 예상/이전치는 캘린더에 이미 있으므로, 원문에서 '실제 숫자'만 뽑아
+# 한글 라벨과 조립한다. 숫자는 언어와 무관하니 번역을 거치지 않는다.
+
+_EN_MONTH = {"january": "1월", "february": "2월", "march": "3월", "april": "4월",
+             "may": "5월", "june": "6월", "july": "7월", "august": "8월",
+             "september": "9월", "october": "10월", "november": "11월", "december": "12월"}
+
+# 오르면 +, 내리면 -. 문장의 동사로 방향을 판단한다.
+_DOWN_RE = re.compile(r"declin|decreas|fell|fall|drop|down|lower", re.I)
+
+
+def _signed(direction, num):
+    sign = "-" if _DOWN_RE.search(direction or "") else "+"
+    return "%s%s%%" % (sign, num)
+
+
+def _month_ko(text, after=""):
+    """'in July' 같은 표현에서 월을 뽑아 '7월' 로. after 로 검색 시작 위치를 좁힘."""
+    m = re.search(r"\bin\s+([A-Z][a-z]+)", text[text.find(after):] if after else text)
+    return _EN_MONTH.get(m.group(1).lower(), "") if m else ""
+
+
+def _fomc_range(text):
+    """'3-1/2 to 3-3/4 percent' -> '3.50~3.75%'. 분수를 소수로 바꾼다."""
+    def frac(s):
+        m = re.match(r"(\d+)(?:-(\d+)/(\d+))?", s.strip())
+        if not m:
+            return None
+        v = int(m.group(1))
+        if m.group(2):
+            v += int(m.group(2)) / int(m.group(3))
+        return v
+    m = re.search(r"federal funds rate at\s+([\d\-/]+)\s+to\s+([\d\-/]+)\s+percent", text, re.I)
+    if not m:
+        return ""
+    lo, hi = frac(m.group(1)), frac(m.group(2))
+    if lo is None or hi is None:
+        return ""
+    return "%.2f~%.2f%%" % (lo, hi)
+
+
 # ---------------------------------------------------------------- 출처별 수집
+#
+# 각 수집기는 (지문, detail) 을 돌려준다.
+#   지문   : 새 발표 판정용. 발표 전(지난달 값)과 후(이번달 값)가 달라야 함
+#   detail : {"month": "7월", "lines": ["전월 +0.1%", ...]}  메시지 조립용
+# 파싱에 실패하면 원문 첫 문장을 lines 에 담아 그대로라도 내보낸다.
 
 def fetch_cpi():
     ua = bls_ua()
     if not ua:
         return None
     t = to_text(http_get("https://www.bls.gov/news.release/cpi.nr0.htm", ua))
-    s = first_sentences(t, r"The Consumer Price Index for All Urban Consumers")
-    return (s, s) if s else None
+    lines = []
+    mom = re.search(r"CPI-U\)?\s+(increased|declined|rose|fell|edged up|edged down|"
+                    r"was unchanged|changed little)\s*([\d.]+)?\s*percent", t, re.I)
+    month = ""
+    if mom:
+        month = _month_ko(t, mom.group(0))
+        val = "0.0%" if mom.group(2) is None else _signed(mom.group(1), mom.group(2))
+        lines.append("전월 %s" % val)
+    core = re.search(r"less food and energy (rose|increased|declined|fell|was unchanged)\s*"
+                     r"([\d.]+)?\s*percent", t, re.I)
+    if core:
+        lines.append("근원 %s" % ("0.0%" if core.group(2) is None
+                                  else _signed(core.group(1), core.group(2))))
+    yoy = re.search(r"all items index (rose|increased|declined|fell)\s+([\d.]+)\s+percent"
+                    r"[^.]*?12 months", t, re.I)
+    if yoy:
+        lines.append("전년 %s" % _signed(yoy.group(1), yoy.group(2)))
+    if not lines:
+        s = first_sentences(t, r"The Consumer Price Index for All Urban Consumers")
+        if not s:
+            return None
+        return s, {"month": "", "lines": [s]}
+    fingerprint = "%s|%s" % (month, "".join(lines))
+    return fingerprint, {"month": month, "lines": lines}
 
 
 def fetch_empsit():
@@ -136,32 +207,71 @@ def fetch_empsit():
     if not ua:
         return None
     t = to_text(http_get("https://www.bls.gov/news.release/empsit.nr0.htm", ua))
-    payroll = first_sentences(t, r"Total nonfarm payroll employment", 1)
-    unemp = first_sentences(t, r"The unemployment rate", 1)
-    body = "\n".join(x for x in (payroll, unemp) if x)
-    return (payroll or body, body) if body else None
+    lines = []
+    nfp = re.search(r"nonfarm payroll employment\s+(?:increased|rose|declined|fell|"
+                    r"changed little|edged up|edged down)[^.(]*\(([\+\-][\d,]+)\)", t, re.I)
+    month = _month_ko(t, "nonfarm payroll") if nfp else ""
+    if nfp:
+        lines.append("비농업 %s" % nfp.group(1).replace("+", "+"))
+    unemp = re.search(r"unemployment rate\s*\(?([\d.]+)\s+percent", t, re.I)
+    if unemp:
+        lines.append("실업률 %s%%" % unemp.group(1))
+    if not lines:
+        p = first_sentences(t, r"Total nonfarm payroll employment", 1)
+        if not p:
+            return None
+        return p, {"month": "", "lines": [p]}
+    fingerprint = "%s|%s" % (month, "".join(lines))
+    return fingerprint, {"month": month, "lines": lines}
 
 
 def fetch_pce():
+    # RSS 설명에는 '지출'만 있고 시장이 보는 '물가지수'가 없다. 물가지수는
+    # 링크된 본문 페이지에 있어서, 발표가 감지되면 그 페이지를 한 번 더 받는다.
     body = http_get("https://apps.bea.gov/rss/rss.xml", BROWSER_UA)
     for it in _rss_items(body):
         title = _tag(it, "title")
         if "Personal Income and Outlays" not in title:
             continue
-        desc = _tag(it, "description")
-        # BEA 설명은 "...2.7 percent." 뒤에 "Full Text Link" 링크 보일러플레이트가
-        # HTML 주석과 <a> 로 붙어 있다. 그런데 이게 &lt;!-- 처럼 엔티티로 인코딩돼
-        # 와서 _tag 의 태그 제거를 통과한 뒤 unescape 되어 <!-- 파편이 남는다.
-        # 주석 시작(<!--)이나 "Full Text" 중 먼저 나오는 지점에서 자른다.
-        cut = len(desc)
-        for marker in ("<!--", "Full Text"):
-            i = desc.find(marker)
-            if i != -1:
-                cut = min(cut, i)
-        desc = desc[:cut].strip()
-        # 대상 월이 제목에 있어서 그것만으로 새 발표 판정이 된다
-        return title, "%s\n\n%s" % (title, desc[:700])
+        link = _tag(it, "link")
+        mm = re.search(r"Personal Income and Outlays,\s*([A-Z][a-z]+)", title)
+        month = _EN_MONTH.get(mm.group(1).lower(), "") if mm else ""
+        lines = []
+        try:
+            page = to_text(http_get(link, BROWSER_UA))
+            # 헤드라인 전월: "From the preceding month, the PCE price index ... X percent"
+            head = re.search(r"preceding month, the PCE price index[^.]*?"
+                             r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
+            if head:
+                lines.append("전월 %s" % _signed(head.group(1), head.group(2)))
+            # 근원(전월): "Excluding food and energy, the PCE price index ... X percent" 의 첫 등장
+            core = re.search(r"[Ee]xcluding food and energy,? the PCE price index "
+                             r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
+            if core:
+                lines.append("근원 %s" % _signed(core.group(1), core.group(2)))
+            # 헤드라인 전년: "From the same month one year ago, the PCE price index ... X percent"
+            yoy = re.search(r"one year ago, the PCE price index[^.]*?"
+                            r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
+            if yoy:
+                lines.append("전년 %s" % _signed(yoy.group(1), yoy.group(2)))
+        except Exception as e:
+            print("[지표감시] PCE 본문 실패:", repr(e)[:120])
+        if not lines:
+            # 물가지수를 못 뽑으면 RSS 설명(지출)이라도 정리해 보냄
+            desc = _tag(it, "description")
+            cut = len(desc)
+            for marker in ("<!--", "Full Text"):
+                i = desc.find(marker)
+                if i != -1:
+                    cut = min(cut, i)
+            desc = desc[:cut].strip()
+            return title, {"month": month, "lines": [desc[:500]] if desc else [title]}
+        fingerprint = "%s|%s" % (month, "".join(lines))
+        return fingerprint, {"month": month, "lines": lines}
     return None
+
+
+_FOMC_ACTION = [(r"maintain", "동결"), (r"lower", "인하"), (r"raise", "인상")]
 
 
 def fetch_fomc():
@@ -170,25 +280,40 @@ def fetch_fomc():
         if _tag(it, "title") != "Federal Reserve issues FOMC statement":
             continue
         link = _tag(it, "link")
-        text = ""
+        lines = []
+        fingerprint = link      # 성명 URL 은 회의마다 달라 지문으로 안전
         try:
             t = to_text(http_get(link, BROWSER_UA))
-            text = first_sentences(
-                t, r"(?:decided to (?:maintain|lower|raise)|target range for the federal funds rate)") or ""
+            rng = _fomc_range(t)
+            action = ""
+            m = re.search(r"decided to (maintain|lower|raise)", t, re.I)
+            if m:
+                for pat, ko in _FOMC_ACTION:
+                    if re.match(pat, m.group(1), re.I):
+                        action = ko
+                        break
+            if action and rng:
+                lines.append("%s · 목표범위 %s" % (action, rng))
+            elif rng:
+                lines.append("목표범위 %s" % rng)
+            elif action:
+                lines.append(action)
         except Exception as e:
-            print("[지표감시] FOMC 본문 실패, 링크만 보냄:", repr(e)[:120])
-        return link, (text + ("\n" + link if text else link))
+            print("[지표감시] FOMC 본문 실패:", repr(e)[:120])
+        if not lines:
+            lines = [link]        # 파싱 실패해도 링크는 준다
+        return fingerprint, {"month": "", "lines": lines}
     return None
 
 
 WATCHERS = [
     {"key": "cpi",    "label": "🇺🇸 미국 CPI",
      "cc": "US", "pattern": r"\bCPI\b|consumer price", "fetch": fetch_cpi},
-    {"key": "empsit", "label": "🇺🇸 미국 고용지표",
+    {"key": "empsit", "label": "🇺🇸 미국 고용",
      "cc": "US", "pattern": r"non.?farm|payroll|employment situation", "fetch": fetch_empsit},
-    {"key": "pce",    "label": "🇺🇸 미국 PCE",
+    {"key": "pce",    "label": "🇺🇸 미국 PCE 물가",
      "cc": "US", "pattern": r"\bPCE\b|personal (income|consumption|spending)", "fetch": fetch_pce},
-    {"key": "fomc",   "label": "🇺🇸 FOMC",
+    {"key": "fomc",   "label": "🇺🇸 FOMC 금리결정",
      "cc": "US", "pattern": r"FOMC (rate|statement|interest)|fed(eral)? funds rate decision",
      "fetch": fetch_fomc},
 ]
@@ -233,6 +358,24 @@ def due_to_poll(key, now_epoch, seconds_since_release):
     return now_epoch - _last_poll.get(key, 0) >= gap
 
 
+def build_message(label, detail, event):
+    """한글 라벨 + 실제 숫자 + 예상/이전(캘린더) 조립. 번역을 거치지 않는다.
+
+    예상/이전은 이 감시기를 무장시킨 캘린더 일정의 값이다. 한 지표에 하위
+    항목이 여럿이면(예: CPI 전월/근원/전년) 그 예상치는 대체로 헤드라인
+    기준이라, 숫자 줄 아래에 한 줄로만 붙인다."""
+    import calendar_relay as cal
+    month = detail.get("month") or ""
+    head = "🚨 %s%s" % (label, " (%s)" % month if month else "")
+    lines = [x for x in detail.get("lines", []) if x]
+    body = head + ("\n" + " · ".join(lines) if lines else "")
+    fc = cal.val(event.get("Forecast"))
+    pv = cal.val(event.get("Previous"))
+    if fc or pv:
+        body += "\n예상 %s · 이전 %s" % (fc or "-", pv or "-")
+    return body
+
+
 def tick(bot_token, cal_events, now_epoch=None, send=None):
     """릴레이 루프가 매 주기 부른다. 보낸 건수를 돌려준다.
 
@@ -269,7 +412,7 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
             continue
         if not got:
             continue
-        fingerprint, body = got
+        fingerprint, detail = got
 
         # 발표 전이면 기준만 잡아 둔다. 지난달 내용을 새 발표로 오인하지 않기 위함
         if now_epoch < t_release:
@@ -286,7 +429,7 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
         if fingerprint == slot.get("baseline"):
             continue
 
-        msg = "🚨 %s 발표\n\n%s" % (w["label"], body)
+        msg = build_message(w["label"], detail, event)
         ok, permanent = (send or _send)(bot_token, msg)
         if ok or permanent:
             slot["done_for"] = event_id
