@@ -582,6 +582,15 @@ def run_loop(duration_seconds):
     """프로세스를 살려둔 채 POLL_INTERVAL_SECONDS 간격으로 계속 확인.
     매 주기 파이썬을 새로 띄우던 방식의 시작 비용(0.3~0.5초)이 사라져서 더 빠름.
     duration_seconds 가 지나면 종료 -> 워크플로가 상태를 커밋하고 다시 띄움."""
+    # 지표 발표 5분 전 알림. 예약(cron)은 수십 분씩 밀려서 못 쓰고,
+    # 이 루프가 유일하게 초 단위로 상시 떠 있는 곳이라 여기에 얹음.
+    # 불러오기에 실패해도 속보 릴레이는 그대로 돌아야 함.
+    try:
+        import calendar_prealert
+    except Exception as e:
+        calendar_prealert = None
+        print("지표 프리알림 사용 안 함:", repr(e)[:200])
+
     end = time.time() + duration_seconds
     while time.time() < end:
         cycle_start = time.time()
@@ -594,6 +603,16 @@ def run_loop(duration_seconds):
         except Exception as e:
             print("이번 주기 오류:", repr(e)[:300])
             note_failure(e)
+
+        # 속보 릴레이와 분리. 지표 알림이 터져도 속보는 계속 나가야 함
+        if calendar_prealert is not None:
+            token = os.environ.get("TELEGRAM_BOT_TOKEN")
+            if token:
+                try:
+                    calendar_prealert.tick(token)
+                except Exception as e:
+                    print("지표 프리알림 오류:", repr(e)[:200])
+
         elapsed = time.time() - cycle_start
         remain = POLL_INTERVAL_SECONDS - elapsed
         if remain > 0:
