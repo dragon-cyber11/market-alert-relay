@@ -149,7 +149,16 @@ def fetch_pce():
         if "Personal Income and Outlays" not in title:
             continue
         desc = _tag(it, "description")
-        desc = desc.split("Full Text")[0].strip()
+        # BEA 설명은 "...2.7 percent." 뒤에 "Full Text Link" 링크 보일러플레이트가
+        # HTML 주석과 <a> 로 붙어 있다. 그런데 이게 &lt;!-- 처럼 엔티티로 인코딩돼
+        # 와서 _tag 의 태그 제거를 통과한 뒤 unescape 되어 <!-- 파편이 남는다.
+        # 주석 시작(<!--)이나 "Full Text" 중 먼저 나오는 지점에서 자른다.
+        cut = len(desc)
+        for marker in ("<!--", "Full Text"):
+            i = desc.find(marker)
+            if i != -1:
+                cut = min(cut, i)
+        desc = desc[:cut].strip()
         # 대상 월이 제목에 있어서 그것만으로 새 발표 판정이 된다
         return title, "%s\n\n%s" % (title, desc[:700])
     return None
