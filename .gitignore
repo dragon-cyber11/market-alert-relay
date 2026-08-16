@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+
+# 스크립트가 만들지만 저장소에 올리지 않는 파일들
+# (scripts/financialjuice_relay.py 에 "커밋 안 함" 으로 표시된 것들)
+#
+# fj_info_cache.txt : 홈페이지에서 뽑은 info 토큰. 15분짜리 임시 캐시
+# fj_fail.json      : 장애 감시용 로컬 카운터
+#
+# [주의] .gitignore 는 줄 맨 앞에서만 # 을 주석으로 본다.
+# 경로 뒤에 주석을 붙이면 그 텍스트까지 패턴에 포함돼 규칙이 먹지 않는다.
+.state/fj_info_cache.txt
+.state/fj_fail.json
+
+# 상태 파일 원자적 쓰기용 임시 파일
+.state/*.tmp
