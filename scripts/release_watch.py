@@ -168,38 +168,48 @@ def _fomc_range(text):
 #
 # 각 수집기는 (지문, detail) 을 돌려준다.
 #   지문   : 새 발표 판정용. 발표 전(지난달 값)과 후(이번달 값)가 달라야 함
-#   detail : {"month": "7월", "lines": ["전월 +0.1%", ...]}  메시지 조립용
-# 파싱에 실패하면 원문 첫 문장을 lines 에 담아 그대로라도 내보낸다.
+#   detail : {"month": "7월", "items": [{"kind","label","value"}, ...]}
+#     kind 는 캘린더 하위 항목과 짝짓기 위한 종류표.
+#       mom  = 헤드라인 전월,  core = 근원 전월,  yoy = 헤드라인 전년
+#       nfp  = 비농업 고용,    unemp = 실업률,    plain = 짝지을 것 없음
+# 파싱에 실패하면 원문 첫 문장을 plain 항목으로 담아 그대로라도 내보낸다.
+
+def _item(kind, label, value):
+    return {"kind": kind, "label": label, "value": value}
+
+
+def _fp(month, items):
+    return "%s|%s" % (month, "".join(i["value"] for i in items))
+
 
 def fetch_cpi():
     ua = bls_ua()
     if not ua:
         return None
     t = to_text(http_get("https://www.bls.gov/news.release/cpi.nr0.htm", ua))
-    lines = []
+    items = []
     mom = re.search(r"CPI-U\)?\s+(increased|declined|rose|fell|edged up|edged down|"
                     r"was unchanged|changed little)\s*([\d.]+)?\s*percent", t, re.I)
     month = ""
     if mom:
         month = _month_ko(t, mom.group(0))
         val = "0.0%" if mom.group(2) is None else _signed(mom.group(1), mom.group(2))
-        lines.append("전월 %s" % val)
+        items.append(_item("mom", "전월", val))
     core = re.search(r"less food and energy (rose|increased|declined|fell|was unchanged)\s*"
                      r"([\d.]+)?\s*percent", t, re.I)
     if core:
-        lines.append("근원 %s" % ("0.0%" if core.group(2) is None
-                                  else _signed(core.group(1), core.group(2))))
+        items.append(_item("core", "근원", "0.0%" if core.group(2) is None
+                           else _signed(core.group(1), core.group(2))))
     yoy = re.search(r"all items index (rose|increased|declined|fell)\s+([\d.]+)\s+percent"
                     r"[^.]*?12 months", t, re.I)
     if yoy:
-        lines.append("전년 %s" % _signed(yoy.group(1), yoy.group(2)))
-    if not lines:
+        items.append(_item("yoy", "전년", _signed(yoy.group(1), yoy.group(2))))
+    if not items:
         s = first_sentences(t, r"The Consumer Price Index for All Urban Consumers")
         if not s:
             return None
-        return s, {"month": "", "lines": [s]}
-    fingerprint = "%s|%s" % (month, "".join(lines))
-    return fingerprint, {"month": month, "lines": lines}
+        return s, {"month": "", "items": [_item("plain", "", s)]}
+    return _fp(month, items), {"month": month, "items": items}
 
 
 def fetch_empsit():
@@ -207,22 +217,21 @@ def fetch_empsit():
     if not ua:
         return None
     t = to_text(http_get("https://www.bls.gov/news.release/empsit.nr0.htm", ua))
-    lines = []
+    items = []
     nfp = re.search(r"nonfarm payroll employment\s+(?:increased|rose|declined|fell|"
                     r"changed little|edged up|edged down)[^.(]*\(([\+\-][\d,]+)\)", t, re.I)
     month = _month_ko(t, "nonfarm payroll") if nfp else ""
     if nfp:
-        lines.append("비농업 %s" % nfp.group(1).replace("+", "+"))
+        items.append(_item("nfp", "비농업", nfp.group(1)))
     unemp = re.search(r"unemployment rate\s*\(?([\d.]+)\s+percent", t, re.I)
     if unemp:
-        lines.append("실업률 %s%%" % unemp.group(1))
-    if not lines:
+        items.append(_item("unemp", "실업률", "%s%%" % unemp.group(1)))
+    if not items:
         p = first_sentences(t, r"Total nonfarm payroll employment", 1)
         if not p:
             return None
-        return p, {"month": "", "lines": [p]}
-    fingerprint = "%s|%s" % (month, "".join(lines))
-    return fingerprint, {"month": month, "lines": lines}
+        return p, {"month": "", "items": [_item("plain", "", p)]}
+    return _fp(month, items), {"month": month, "items": items}
 
 
 def fetch_pce():
@@ -236,27 +245,27 @@ def fetch_pce():
         link = _tag(it, "link")
         mm = re.search(r"Personal Income and Outlays,\s*([A-Z][a-z]+)", title)
         month = _EN_MONTH.get(mm.group(1).lower(), "") if mm else ""
-        lines = []
+        items = []
         try:
             page = to_text(http_get(link, BROWSER_UA))
             # 헤드라인 전월: "From the preceding month, the PCE price index ... X percent"
             head = re.search(r"preceding month, the PCE price index[^.]*?"
                              r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
             if head:
-                lines.append("전월 %s" % _signed(head.group(1), head.group(2)))
+                items.append(_item("mom", "전월", _signed(head.group(1), head.group(2))))
             # 근원(전월): "Excluding food and energy, the PCE price index ... X percent" 의 첫 등장
             core = re.search(r"[Ee]xcluding food and energy,? the PCE price index "
                              r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
             if core:
-                lines.append("근원 %s" % _signed(core.group(1), core.group(2)))
+                items.append(_item("core", "근원", _signed(core.group(1), core.group(2))))
             # 헤드라인 전년: "From the same month one year ago, the PCE price index ... X percent"
             yoy = re.search(r"one year ago, the PCE price index[^.]*?"
                             r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
             if yoy:
-                lines.append("전년 %s" % _signed(yoy.group(1), yoy.group(2)))
+                items.append(_item("yoy", "전년", _signed(yoy.group(1), yoy.group(2))))
         except Exception as e:
             print("[지표감시] PCE 본문 실패:", repr(e)[:120])
-        if not lines:
+        if not items:
             # 물가지수를 못 뽑으면 RSS 설명(지출)이라도 정리해 보냄
             desc = _tag(it, "description")
             cut = len(desc)
@@ -265,9 +274,9 @@ def fetch_pce():
                 if i != -1:
                     cut = min(cut, i)
             desc = desc[:cut].strip()
-            return title, {"month": month, "lines": [desc[:500]] if desc else [title]}
-        fingerprint = "%s|%s" % (month, "".join(lines))
-        return fingerprint, {"month": month, "lines": lines}
+            return title, {"month": month,
+                           "items": [_item("plain", "", desc[:500] if desc else title)]}
+        return _fp(month, items), {"month": month, "items": items}
     return None
 
 
@@ -280,7 +289,7 @@ def fetch_fomc():
         if _tag(it, "title") != "Federal Reserve issues FOMC statement":
             continue
         link = _tag(it, "link")
-        lines = []
+        value = link            # 파싱 실패해도 링크는 준다
         fingerprint = link      # 성명 URL 은 회의마다 달라 지문으로 안전
         try:
             t = to_text(http_get(link, BROWSER_UA))
@@ -293,17 +302,30 @@ def fetch_fomc():
                         action = ko
                         break
             if action and rng:
-                lines.append("%s · 목표범위 %s" % (action, rng))
+                value = "%s · 목표범위 %s" % (action, rng)
             elif rng:
-                lines.append("목표범위 %s" % rng)
+                value = "목표범위 %s" % rng
             elif action:
-                lines.append(action)
+                value = action
         except Exception as e:
             print("[지표감시] FOMC 본문 실패:", repr(e)[:120])
-        if not lines:
-            lines = [link]        # 파싱 실패해도 링크는 준다
-        return fingerprint, {"month": "", "lines": lines}
+        return fingerprint, {"month": "", "items": [_item("plain", "", value)]}
     return None
+
+
+# 캘린더 하위 항목 제목 -> 종류표. 추출 항목의 kind 와 짝지어 예상/이전치를 붙인다.
+def calendar_kind(title):
+    t = (title or "").lower()
+    if "unemployment" in t:
+        return "unemp"
+    if "payroll" in t or "nonfarm" in t or "non-farm" in t:
+        return "nfp"
+    core = ("core" in t or "ex food" in t or "excluding" in t or "less food" in t)
+    yoy = any(k in t for k in ("yoy", "y/y", "year over year", "year-over-year",
+                               "annual", "12-month", "12 month"))
+    if core:
+        return "core_yoy" if yoy else "core"
+    return "yoy" if yoy else "mom"
 
 
 WATCHERS = [
@@ -340,17 +362,26 @@ def save_state(state):
     os.replace(tmp, STATE_FILE)
 
 
-def armed_event(watcher, cal_events, now_epoch):
-    """이 감시기가 지금 노려야 할 지표 일정을 찾는다. 없으면 None."""
+def armed_events(watcher, cal_events, now_epoch):
+    """지금 노려야 할 지표 일정을 찾는다. 같은 지표의 하위 항목(CPI 전월/근원/
+    전년 등)이 같은 시각에 여러 건 있으므로 그 시각의 것을 모두 모아 돌려준다.
+    없으면 None. 반환: (발표시각, [이벤트...])"""
+    best_t = None
+    group = []
     for t_utc, e in cal_events:
         if (e.get("CountryCode") or "") != watcher["cc"]:
             continue
         if not re.search(watcher["pattern"], e.get("Title") or "", re.I):
             continue
         t = t_utc.timestamp()
-        if t - ARM_BEFORE_SECONDS <= now_epoch <= t + ARM_AFTER_SECONDS:
-            return t, e
-    return None
+        if not (t - ARM_BEFORE_SECONDS <= now_epoch <= t + ARM_AFTER_SECONDS):
+            continue
+        # 가장 이른 발표 시각의 묶음만. 같은 시각의 하위 항목들을 함께 모은다
+        if best_t is None or t < best_t:
+            best_t, group = t, [e]
+        elif abs(t - best_t) < 1:
+            group.append(e)
+    return (best_t, group) if group else None
 
 
 def due_to_poll(key, now_epoch, seconds_since_release):
@@ -358,22 +389,32 @@ def due_to_poll(key, now_epoch, seconds_since_release):
     return now_epoch - _last_poll.get(key, 0) >= gap
 
 
-def build_message(label, detail, event):
-    """한글 라벨 + 실제 숫자 + 예상/이전(캘린더) 조립. 번역을 거치지 않는다.
+def build_message(label, detail, events):
+    """한글 라벨 + 실제 숫자 + 항목별 예상/이전(캘린더) 조립. 번역 없음.
 
-    예상/이전은 이 감시기를 무장시킨 캘린더 일정의 값이다. 한 지표에 하위
-    항목이 여럿이면(예: CPI 전월/근원/전년) 그 예상치는 대체로 헤드라인
-    기준이라, 숫자 줄 아래에 한 줄로만 붙인다."""
+    events 는 같은 시각의 캘린더 하위 항목들. 추출한 각 숫자(kind)를 제목으로
+    분류한 캘린더 항목과 짝지어, 그 항목의 예상/이전치를 옆에 붙인다.
+    짝이 없으면 숫자만 보여준다."""
     import calendar_relay as cal
+    by_kind = {}
+    for e in events or []:
+        by_kind.setdefault(calendar_kind(e.get("Title")), e)
+
     month = detail.get("month") or ""
-    head = "🚨 %s%s" % (label, " (%s)" % month if month else "")
-    lines = [x for x in detail.get("lines", []) if x]
-    body = head + ("\n" + " · ".join(lines) if lines else "")
-    fc = cal.val(event.get("Forecast"))
-    pv = cal.val(event.get("Previous"))
-    if fc or pv:
-        body += "\n예상 %s · 이전 %s" % (fc or "-", pv or "-")
-    return body
+    out = ["🚨 %s%s" % (label, " (%s)" % month if month else "")]
+    for it in detail.get("items", []):
+        line = ("%s %s" % (it["label"], it["value"])).strip()
+        e = by_kind.get(it["kind"])
+        # core 하위에 전월/전년 구분이 없을 때 core_yoy 로도 시도
+        if e is None and it["kind"] == "core":
+            e = by_kind.get("core_yoy")
+        if e is not None:
+            fc = cal.val(e.get("Forecast"))
+            pv = cal.val(e.get("Previous"))
+            if fc or pv:
+                line += " (예상 %s·이전 %s)" % (fc or "-", pv or "-")
+        out.append(line)
+    return "\n".join(out)
 
 
 def tick(bot_token, cal_events, now_epoch=None, send=None):
@@ -389,12 +430,13 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
     sent = 0
 
     for w in WATCHERS:
-        hit = armed_event(w, cal_events, now_epoch)
+        hit = armed_events(w, cal_events, now_epoch)
         if not hit:
             continue
-        t_release, event = hit
+        t_release, events = hit
         slot = state.get(w["key"]) or {}
-        event_id = (event.get("ID") or "").strip() or event.get("RealDate") or ""
+        # 하위 항목이 여럿이라 개별 ID 대신 발표 시각을 묶음 키로 쓴다
+        event_id = "%.0f" % t_release
 
         # 이번 발표는 이미 처리했음
         if slot.get("done_for") == event_id:
@@ -429,7 +471,7 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
         if fingerprint == slot.get("baseline"):
             continue
 
-        msg = build_message(w["label"], detail, event)
+        msg = build_message(w["label"], detail, events)
         ok, permanent = (send or _send)(bot_token, msg)
         if ok or permanent:
             slot["done_for"] = event_id
