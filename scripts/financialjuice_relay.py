@@ -591,6 +591,14 @@ def run_loop(duration_seconds):
         calendar_prealert = None
         print("지표 프리알림 사용 안 함:", repr(e)[:200])
 
+    # 주요 지표(CPI/고용/PCE/FOMC)를 원 출처에서 직접 잡아 헤드라인보다 먼저 보냄.
+    # 일정은 프리알림이 이미 30분마다 갱신해 둔 것을 그대로 쓴다(중복 호출 방지).
+    try:
+        import release_watch
+    except Exception as e:
+        release_watch = None
+        print("지표 원출처 감시 사용 안 함:", repr(e)[:200])
+
     end = time.time() + duration_seconds
     while time.time() < end:
         cycle_start = time.time()
@@ -605,13 +613,18 @@ def run_loop(duration_seconds):
             note_failure(e)
 
         # 속보 릴레이와 분리. 지표 알림이 터져도 속보는 계속 나가야 함
-        if calendar_prealert is not None:
-            token = os.environ.get("TELEGRAM_BOT_TOKEN")
-            if token:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if token and calendar_prealert is not None:
+            try:
+                calendar_prealert.tick(token)
+            except Exception as e:
+                print("지표 프리알림 오류:", repr(e)[:200])
+
+            if release_watch is not None:
                 try:
-                    calendar_prealert.tick(token)
+                    release_watch.tick(token, calendar_prealert._cal_cache)
                 except Exception as e:
-                    print("지표 프리알림 오류:", repr(e)[:200])
+                    print("지표 원출처 감시 오류:", repr(e)[:200])
 
         elapsed = time.time() - cycle_start
         remain = POLL_INTERVAL_SECONDS - elapsed

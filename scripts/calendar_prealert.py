@@ -85,24 +85,37 @@ def refresh_calendar(now_epoch):
         print("[프리알림] 일정 갱신 실패, 5분 뒤 재시도:", repr(e)[:150])
 
 
-def build_message(t_utc, e):
-    kst = t_utc.astimezone(cal.KST)
-    flag = cal.flag_of(e)
-    title = cal.to_korean(e.get("Title"))
-    lead_min = PREALERT_LEAD_SECONDS // 60
-
-    line = "⏰ %d분 후 지표 발표\n\n%s %s %s" % (
-        lead_min, kst.strftime("%H:%M"), flag, title)
-
+def event_block(e):
+    """지표 한 건의 표시 블록."""
+    block = "%s %s" % (cal.flag_of(e), cal.to_korean(e.get("Title")))
     fc = cal.val(e.get("Forecast"))
     pv = cal.val(e.get("Previous"))
     if fc or pv:
-        line += "\n예상 %s / 이전 %s" % (fc or "-", pv or "-")
-
+        block += "\n   예상 %s / 이전 %s" % (fc or "-", pv or "-")
     sp = cal.val(e.get("Speaker"))
     if sp:
-        line += "\n%s" % sp
-    return line
+        block += "\n   %s" % sp
+    return block
+
+
+def build_messages(t_utc, events):
+    """같은 시각에 발표되는 지표들을 한 통으로 묶는다.
+    중국 지표처럼 같은 시각에 4건이 몰리는 경우가 흔해서, 따로 보내면
+    알림이 연달아 울리고 텔레그램 분당 제한에도 불리하다.
+    길면 텔레그램 한도에 맞춰 여러 통으로 나눈다."""
+    kst = t_utc.astimezone(cal.KST)
+    header = "⏰ %d분 후 지표 발표 (%s)" % (
+        PREALERT_LEAD_SECONDS // 60, kst.strftime("%H:%M"))
+
+    msgs, cur = [], header
+    for e in events:
+        b = event_block(e)
+        if len(cur) + len(b) + 2 > cal.TG_LIMIT:
+            msgs.append(cur)
+            cur = header + " (이어서)"
+        cur += "\n\n" + b
+    msgs.append(cur)
+    return msgs
 
 
 def tick(bot_token, now_epoch=None):
@@ -116,35 +129,47 @@ def tick(bot_token, now_epoch=None):
         return 0
 
     state = load_state()
-    due = []
+    # 같은 발표 시각끼리 묶는다
+    groups = {}
     for t_utc, e in _cal_cache:
         t_epoch = t_utc.timestamp()
         # 발표 전 창 안에 있을 때만. 이미 발표됐으면 보내지 않는다.
         if not (t_epoch - PREALERT_LEAD_SECONDS <= now_epoch < t_epoch):
             continue
-        k = event_key(e)
-        if k in state:
+        if event_key(e) in state:
             continue
-        due.append((t_utc, e, k))
+        groups.setdefault(t_epoch, (t_utc, []))[1].append(e)
 
-    if not due:
+    if not groups:
         return 0
 
     sent = 0
-    for t_utc, e, k in due:
+    for t_epoch in sorted(groups):
+        t_utc, events = groups[t_epoch]
+        events.sort(key=lambda x: (x.get("CountryCode") or "", x.get("Title") or ""))
         try:
-            msg = build_message(t_utc, e)
+            msgs = build_messages(t_utc, events)
         except Exception as ex:
             print("[프리알림] 메시지 생성 실패:", repr(ex)[:150])
             continue
-        ok, permanent = _send(bot_token, msg)
-        # 보냈거나 '다시 보내면 안 되는' 경우에만 기록한다.
-        # 일시적 실패는 기록하지 않아서 다음 주기에 창 안이면 재시도된다.
-        if ok or permanent:
-            state[k] = now_epoch
-            sent += int(ok)
-            print("[프리알림] %s 발송%s" % ((e.get("Title") or "")[:50],
-                                            "" if ok else " (건너뜀)"))
+
+        # 한 묶음이 여러 통이 될 수 있음. 전부 보낸 뒤에 묶음 전체를 기록한다.
+        group_ok = True
+        for i, msg in enumerate(msgs):
+            if i:
+                time.sleep(cal.SEND_GAP_SECONDS)
+            ok, permanent = _send(bot_token, msg)
+            if ok:
+                sent += 1
+            elif not permanent:
+                # 일시적 실패. 기록하지 않아서 다음 주기에 창 안이면 재시도된다.
+                group_ok = False
+                break
+        if group_ok:
+            for e in events:
+                state[event_key(e)] = now_epoch
+            print("[프리알림] %s 지표 %d건 발송" % (
+                t_utc.astimezone(cal.KST).strftime("%H:%M"), len(events)))
     save_state(state, now_epoch)
     return sent
 
