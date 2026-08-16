@@ -209,6 +209,20 @@ def parse_epoch(date_published, default=None):
     return int(time.time()) if default is None else default
 
 
+def atomic_write(path, text):
+    """임시 파일에 다 쓴 뒤 한 번에 바꿔치기.
+
+    잡이 시간 초과나 취소로 도중에 죽어도 상태 파일이 '반쯤 쓰인 상태'로 남지 않게 함.
+    잘린 NewsID(예: 3421 -> 34)가 그대로 커밋되면, 다음 잡이 그 지점부터 되짚어서
+    이미 보낸 뉴스를 최대 200건까지 다시 보내는 사고가 남."""
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        f.write(text)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
 def load_sent_titles():
     if not os.path.exists(SENT_TITLES_FILE):
         return {}
@@ -225,8 +239,7 @@ def save_sent_titles(sent_titles, now_epoch):
               if now_epoch - e < SENT_TITLES_TTL_SECONDS}
     if len(pruned) > SENT_TITLES_MAX:
         pruned = dict(sorted(pruned.items(), key=lambda kv: kv[1], reverse=True)[:SENT_TITLES_MAX])
-    with open(SENT_TITLES_FILE, "w") as f:
-        json.dump(pruned, f)
+    atomic_write(SENT_TITLES_FILE, json.dumps(pruned))
 
 
 def read_last_id():
@@ -239,8 +252,7 @@ def read_last_id():
 
 
 def write_last_id(value):
-    with open(LAST_ID_FILE, "w") as f:
-        f.write(str(int(value)))
+    atomic_write(LAST_ID_FILE, str(int(value)))
 
 
 # 가입/키 없이 쓸 수 있는 비공식 구글 번역 엔드포인트 (브라우저 구글 번역이 쓰는 것과 동일).
@@ -409,9 +421,8 @@ def write_heartbeat(latest_id, count):
         lag = " lag최근%d건=%d~%d초(중앙%d초)" % (
             len(recent), min(recent), max(recent),
             sorted(recent)[len(recent) // 2])
-    with open(HEARTBEAT_FILE, "w") as f:
-        f.write("%s latest_newsid=%s count=%s %s%s\n" % (
-            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), latest_id, count, send, lag))
+    atomic_write(HEARTBEAT_FILE, "%s latest_newsid=%s count=%s %s%s\n" % (
+        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), latest_id, count, send, lag))
 
 
 def news_id_of(n):
@@ -432,6 +443,9 @@ def collect_items(info, last_id, do_backfill):
         return items
 
     by_id = {news_id_of(n): n for n in items if news_id_of(n) > 0}
+    if not by_id:
+        # 쓸 수 있는 NewsID가 하나도 없으면 되짚을 기준점이 없음 (min() 이 터짐)
+        return items
     for _ in range(MAX_BACKFILL_PAGES):
         oldest = min(by_id)
         if oldest <= last_id:      # 이미 지난번 지점까지 다 덮었음
@@ -453,10 +467,12 @@ def main():
     last_id = 0 if first_run else read_last_id()
 
     items = collect_items(info, last_id, do_backfill=not first_run)
+    # 거르고 나서 비었는지 확인해야 함. 순서가 반대면 NewsID 없는 응답이 왔을 때
+    # 아래 items[-1] 에서 IndexError 가 남
+    items = [n for n in items if news_id_of(n) > 0]
     if not items:
         raise RuntimeError("뉴스 응답이 비어 있음")
 
-    items = [n for n in items if news_id_of(n) > 0]
     items.sort(key=news_id_of)                 # 오래된 것 -> 최신
     latest_id = news_id_of(items[-1])
 
@@ -569,6 +585,9 @@ def run_loop(duration_seconds):
     end = time.time() + duration_seconds
     while time.time() < end:
         cycle_start = time.time()
+        # 주기마다 비움. 안 비우면 프로세스가 사는 10분 내내 값이 쌓여서,
+        # 초반에 한 번 실패한 기록이 이후 모든 하트비트 줄에 계속 따라붙음
+        del LAST_SEND_STATUS[:]
         try:
             main()
             note_success()
