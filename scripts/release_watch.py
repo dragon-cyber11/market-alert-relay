@@ -139,6 +139,12 @@ def _signed(direction, num):
     return "%s%s%%" % (sign, num)
 
 
+def _signed_num(direction, num):
+    """부호 없는 숫자에 방향(동사) 기준 부호를 붙인다. % 는 안 붙임."""
+    sign = "-" if _DOWN_RE.search(direction or "") else "+"
+    return "%s%s" % (sign, num)
+
+
 def _month_ko(text, after=""):
     """'in July' 같은 표현에서 월을 뽑아 '7월' 로. after 로 검색 시작 위치를 좁힘."""
     m = re.search(r"\bin\s+([A-Z][a-z]+)", text[text.find(after):] if after else text)
@@ -218,12 +224,27 @@ def fetch_empsit():
         return None
     t = to_text(http_get("https://www.bls.gov/news.release/empsit.nr0.htm", ua))
     items = []
-    nfp = re.search(r"nonfarm payroll employment\s+(?:increased|rose|declined|fell|"
-                    r"changed little|edged up|edged down)[^.(]*\(([\+\-][\d,]+)\)", t, re.I)
-    month = _month_ko(t, "nonfarm payroll") if nfp else ""
-    if nfp:
-        items.append(_item("nfp", "비농업", nfp.group(1)))
-    unemp = re.search(r"unemployment rate\s*\(?([\d.]+)\s+percent", t, re.I)
+    # NFP 는 달마다 표현이 갈린다:
+    #   "employment (-23,000) and the unemployment rate ..."  (괄호에 부호 포함)
+    #   "employment rose by 254,000 in September"             (동사+by, 부호는 동사로)
+    m = re.search(r"nonfarm payroll employment\b", t, re.I)
+    nfp_val = ""
+    if m:
+        seg = t[m.end():m.end() + 90]
+        paren = re.match(r"\s*\(([+\-][\d,]+)\)", seg)
+        if paren:
+            nfp_val = paren.group(1)
+        else:
+            by = re.search(r"(increased|rose|declined|fell|edged up|edged down|"
+                           r"was little changed|changed little)\s+by\s+([\d,]+)", seg, re.I)
+            if by:
+                nfp_val = _signed_num(by.group(1), by.group(2))
+    month = _month_ko(t, "nonfarm payroll") if nfp_val else ""
+    if nfp_val:
+        items.append(_item("nfp", "비농업", nfp_val))
+    # 실업률: "rate (4.1 percent)" / "rate held at 4.2 percent" / "rate rose to 4.3 percent"
+    # 등 사이에 단어가 낀다. 마침표를 넘지 않는 40자 안에서 첫 숫자를 잡는다.
+    unemp = re.search(r"unemployment rate[^.]{0,40}?([\d.]+)\s+percent", t, re.I)
     if unemp:
         items.append(_item("unemp", "실업률", "%s%%" % unemp.group(1)))
     if not items:
@@ -289,7 +310,7 @@ def fetch_fomc():
         if _tag(it, "title") != "Federal Reserve issues FOMC statement":
             continue
         link = _tag(it, "link")
-        value = link            # 파싱 실패해도 링크는 준다
+        value = ""              # 파싱 성공 시 결정 요약
         fingerprint = link      # 성명 URL 은 회의마다 달라 지문으로 안전
         try:
             t = to_text(http_get(link, BROWSER_UA))
@@ -309,7 +330,9 @@ def fetch_fomc():
                 value = action
         except Exception as e:
             print("[지표감시] FOMC 본문 실패:", repr(e)[:120])
-        return fingerprint, {"month": "", "items": [_item("plain", "", value)]}
+        # 결정 요약(있으면) + 성명 원문 링크. 파싱에 실패해도 링크는 항상 준다.
+        items = ([_item("plain", "", value)] if value else []) + [_item("plain", "", link)]
+        return fingerprint, {"month": "", "items": items}
     return None
 
 
@@ -332,7 +355,8 @@ WATCHERS = [
     {"key": "cpi",    "label": "🇺🇸 미국 CPI",
      "cc": "US", "pattern": r"\bCPI\b|consumer price", "fetch": fetch_cpi},
     {"key": "empsit", "label": "🇺🇸 미국 고용",
-     "cc": "US", "pattern": r"non.?farm|payroll|employment situation", "fetch": fetch_empsit},
+     "cc": "US", "pattern": r"non.?farm|payroll|employment situation|unemployment",
+     "fetch": fetch_empsit},
     {"key": "pce",    "label": "🇺🇸 미국 PCE 물가",
      "cc": "US", "pattern": r"\bPCE\b|personal (income|consumption|spending)", "fetch": fetch_pce},
     {"key": "fomc",   "label": "🇺🇸 FOMC 금리결정",
@@ -404,10 +428,9 @@ def build_message(label, detail, events):
     out = ["🚨 %s%s" % (label, " (%s)" % month if month else "")]
     for it in detail.get("items", []):
         line = ("%s %s" % (it["label"], it["value"])).strip()
+        # kind 를 정확히 맞는 캘린더 항목하고만 짝짓는다. core(전월)에 core_yoy(전년)를
+        # 붙이면 월간 값 옆에 연간 예상치가 붙어 오히려 오해를 준다.
         e = by_kind.get(it["kind"])
-        # core 하위에 전월/전년 구분이 없을 때 core_yoy 로도 시도
-        if e is None and it["kind"] == "core":
-            e = by_kind.get("core_yoy")
         if e is not None:
             fc = cal.val(e.get("Forecast"))
             pv = cal.val(e.get("Previous"))
@@ -446,6 +469,12 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
         if not due_to_poll(w["key"], now_epoch, since):
             continue
         _last_poll[w["key"]] = now_epoch
+
+        # 발표 전에 기준을 이미 잡아 뒀으면 발표 시각까지는 더 받아올 필요가 없다.
+        # 이 가드가 없으면 발표 2분 전부터 1초마다(FAST 창) 본문 페이지를 다시 받아
+        # BEA/Fed 에 발표 직전 100여 회를 쏘게 된다(정작 잡아야 할 순간에 차단 위험).
+        if now_epoch < t_release and slot.get("baseline_for") == event_id:
+            continue
 
         try:
             got = w["fetch"]()
