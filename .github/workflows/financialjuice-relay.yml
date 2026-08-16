@@ -67,6 +67,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           # BLS(미국 CPI/고용)는 UA 에 이메일이 있어야 응답함. 없으면 그 두 건만 건너뜀
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+          # 🚨 를 움직이는 커스텀 이모지로 보내고 싶을 때만 설정(선택). 없으면 평범한 🚨.
+          SIREN_CUSTOM_EMOJI_ID: ${{ secrets.SIREN_CUSTOM_EMOJI_ID }}
         run: |
           git config user.name "relay-bot"
           git config user.email "relay-bot@users.noreply.github.com"
