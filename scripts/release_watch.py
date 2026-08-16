@@ -52,10 +52,27 @@ BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
 
+_bls_notice_shown = False
+
+
 def bls_ua():
-    """BLS 는 이메일이 든 UA 만 통과시킨다. 없으면 None -> 해당 감시 비활성."""
+    """BLS 는 이메일이 든 UA 만 통과시킨다. 없으면 None -> 해당 감시 비활성.
+
+    설정 여부를 프로세스당 한 번 로그로 남긴다. 조용히 건너뛰면 CONTACT_EMAIL
+    시크릿을 넣었는지 아닌지 Actions 로그만 보고는 알 수가 없다."""
+    global _bls_notice_shown
     email = (os.environ.get("CONTACT_EMAIL") or "").strip()
-    return "market-alert-relay/1.0 (%s)" % email if "@" in email else None
+    ok = "@" in email
+    if not _bls_notice_shown:
+        _bls_notice_shown = True
+        if ok:
+            # 로그에 주소 전체를 남기지 않는다. Actions 로그는 공개 저장소에서 볼 수 있음
+            user, _, domain = email.partition("@")
+            print("[지표감시] CPI/고용 감시 켜짐 (연락처 %s***@%s)" % (user[:2], domain))
+        else:
+            print("[지표감시] CONTACT_EMAIL 이 없어 CPI/고용 감시 꺼짐 "
+                  "(PCE/FOMC 는 정상 동작). 저장소 Secret 에 CONTACT_EMAIL 을 넣으면 켜짐")
+    return "market-alert-relay/1.0 (%s)" % email if ok else None
 
 
 def http_get(url, ua, timeout=HTTP_TIMEOUT):
