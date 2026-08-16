@@ -330,8 +330,9 @@ def fetch_fomc():
                 value = action
         except Exception as e:
             print("[지표감시] FOMC 본문 실패:", repr(e)[:120])
-        # 결정 요약(있으면) + 성명 원문 링크. 파싱에 실패해도 링크는 항상 준다.
-        items = ([_item("plain", "", value)] if value else []) + [_item("plain", "", link)]
+        # 파싱에 성공하면 결정 요약만 깔끔하게 보낸다(다른 지표처럼 숫자만).
+        # 파싱에 실패해 요약이 없을 때만, 그거라도 있으라고 링크를 남긴다.
+        items = [_item("plain", "", value or link)]
         return fingerprint, {"month": "", "items": items}
     return None
 
