@@ -186,16 +186,31 @@ def pick_events(cal, start_utc, end_utc):
 
 # ---------------------------------------------------------------- 번역
 
+# 번역에 쓸 수 있는 총 시간. 이 시간을 넘기면 남은 제목은 원문 그대로 내보낸다.
+# 주간 미리보기는 제목이 120개까지 나오는데, 묶음 번역이 통째로 실패해서 전부
+# 개별 재시도로 넘어가면 잡의 10분 제한을 넘겨 다이제스트가 통째로 유실됨.
+TRANSLATE_BUDGET_SECONDS = 240
+
+# 캐시 값 규약: 성공하면 번역문, 실패하면 원문. None(=키 없음)은 '아직 시도 안 함'만 뜻한다.
+# 예전에는 실패도 None 으로 넣어서 to_korean 이 매번 같은 제목을 다시 번역했다.
 _tr_cache = {}
+_tr_deadline = None
 
 
-def _google(text):
+def _budget_left():
+    global _tr_deadline
+    if _tr_deadline is None:
+        _tr_deadline = time.time() + TRANSLATE_BUDGET_SECONDS
+    return _tr_deadline - time.time()
+
+
+def _google(text, timeout=20):
     params = urllib.parse.urlencode(
         {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text})
     req = urllib.request.Request(
         "%s?%s" % (GOOGLE_UNOFFICIAL_URL, params),
         headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=20) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         data = json.loads(resp.read().decode())
     return "".join(seg[0] for seg in data[0] if seg and seg[0])
 
@@ -208,22 +223,33 @@ def warm_translations(titles, chunk=20):
             if t and t not in _tr_cache and t.lower() not in TITLE_OVERRIDE]
     for i in range(0, len(todo), chunk):
         part = todo[i:i + chunk]
+        if _budget_left() <= 0:
+            print("번역 시간 예산 소진, 남은 %d건은 원문으로 보냄" % len(todo[i:]))
+            for src in todo[i:]:
+                _tr_cache[src] = src
+            return
         try:
             got = _google("\n".join(part)).split("\n")
             if len(got) == len(part):
                 for src, ko in zip(part, got):
-                    _tr_cache[src] = ko.strip() or None
+                    _tr_cache[src] = ko.strip() or src
                 time.sleep(0.3)
                 continue
             print("묶음 번역 줄 수 불일치(%d vs %d), 개별 재시도" % (len(got), len(part)))
         except Exception as e:
             print("묶음 번역 실패, 개별 재시도:", e)
-        for src in part:
+        # 개별 재시도는 남은 예산 안에서만. 타임아웃도 짧게 잡아 한 건이 오래 붙들지 않게 함
+        for j, src in enumerate(part):
+            if _budget_left() <= 0:
+                print("번역 시간 예산 소진, 남은 %d건은 원문으로 보냄" % len(part[j:]))
+                for rest in part[j:]:
+                    _tr_cache[rest] = rest
+                break
             try:
-                _tr_cache[src] = (_google(src) or "").strip() or None
+                _tr_cache[src] = (_google(src, timeout=8) or "").strip() or src
             except Exception as e:
                 print("번역 실패(%s): %s" % (src[:40], e))
-                _tr_cache[src] = None
+                _tr_cache[src] = src      # 실패는 원문으로 확정. 다시 시도하지 않음
             time.sleep(0.2)
 
 
@@ -236,11 +262,14 @@ def to_korean(title):
     if hit:
         return hit
     ko = _tr_cache.get(raw)
-    if ko is None:
-        try:
-            ko = (_google(raw) or "").strip() or raw
-        except Exception:
+    if ko is None:                         # 캐시에 아예 없을 때만 (실패는 원문으로 캐시됨)
+        if _budget_left() <= 0:
             ko = raw
+        else:
+            try:
+                ko = (_google(raw, timeout=8) or "").strip() or raw
+            except Exception:
+                ko = raw
         _tr_cache[raw] = ko
     for pat, rep in POST_FIX:
         ko = re.sub(pat, rep, ko)
