@@ -290,6 +290,31 @@ def translate_to_ko(text):
 # 마지막 전송 결과를 하트비트에 남기기 위한 기록용 (뉴스가 안 올 때 원인 파악용)
 LAST_SEND_STATUS = []
 
+# 🚨(사이렌)을 움직이는 커스텀 이모지로 보내고 싶을 때, 그 custom_emoji_id 를
+# 이 환경변수에 넣는다. 비어 있으면 평범한 🚨 정지 이모지로 나간다.
+#   [주의] 텔레그램은 봇이 custom_emoji 를 보내려면 Fragment 에서 사용자명을 산
+#   봇이어야 한다. 자격이 없으면 400 을 주는데, 그때 이 엔티티를 빼고 한 번 더
+#   보내(=평범한 🚨) 알림 자체가 사라지지 않게 한다. (send_telegram 의 폴백)
+SIREN_CHAR = "\U0001F6A8"
+SIREN_CUSTOM_EMOJI_ID = os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
+
+
+def _siren_entities(msg):
+    """메시지에 🚨 가 있고 custom_emoji_id 가 설정돼 있으면, 그 자리를 움직이는
+    커스텀 이모지로 바꾸는 entities(JSON 문자열)를 만든다. 없으면 None.
+    오프셋/길이는 텔레그램 규격대로 UTF-16 코드 단위로 센다(🚨 는 2 단위)."""
+    if not SIREN_CUSTOM_EMOJI_ID:
+        return None
+    idx = msg.find(SIREN_CHAR)
+    if idx < 0:
+        return None
+    offset = len(msg[:idx].encode("utf-16-le")) // 2
+    length = len(SIREN_CHAR.encode("utf-16-le")) // 2
+    return json.dumps([{
+        "type": "custom_emoji", "offset": offset, "length": length,
+        "custom_emoji_id": SIREN_CUSTOM_EMOJI_ID,
+    }])
+
 
 def send_telegram(bot_token, chat_id, msg, max_retry=2):
     """텔레그램 전송. (성공여부, 더이상재시도안함) 을 돌려줌.
@@ -307,12 +332,18 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
     - 500번대                 -> 한 번 재시도 후 (False, False). 서버가 거절한 것이라 안전
     - 응답 없음(타임아웃 등)  -> (False, True)   전달 여부 불명. 재시도 안 함(중복 방지)
     """
-    data = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
     url = "https://api.telegram.org/bot%s/sendMessage" % bot_token
+    entities = _siren_entities(msg)   # None 이면 평범한 전송과 완전히 동일
+
+    def build(with_entities):
+        fields = {"chat_id": chat_id, "text": msg}
+        if with_entities and entities:
+            fields["entities"] = entities
+        return urllib.parse.urlencode(fields).encode()
 
     for attempt in range(max_retry + 1):
         try:
-            req = urllib.request.Request(url, data=data)
+            req = urllib.request.Request(url, data=build(entities is not None))
             with urllib.request.urlopen(req, timeout=20) as r:
                 r.read()
             LAST_SEND_STATUS.append("ok")
@@ -342,6 +373,19 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
                 return False, False
 
             if 400 <= e.code < 500:
+                # 커스텀 이모지 엔티티 때문에 거부됐을 수 있다(봇 자격 미달 등).
+                # 엔티티를 빼고 평범한 🚨 로 딱 한 번 더 시도해서 알림이 사라지지
+                # 않게 한다. 그래도 400 이면 진짜 메시지 문제라 건너뛴다.
+                if entities is not None:
+                    print("텔레그램 400, 커스텀 이모지 빼고 재시도: %s" % body)
+                    try:
+                        req = urllib.request.Request(url, data=build(False))
+                        with urllib.request.urlopen(req, timeout=20) as r:
+                            r.read()
+                        LAST_SEND_STATUS.append("ok_plain")
+                        return True, False
+                    except Exception as e2:
+                        print("커스텀 이모지 제거 후에도 실패:", repr(e2)[:150])
                 print("텔레그램이 거부함(%s): %s" % (e.code, body))
                 LAST_SEND_STATUS.append("rejected_%s" % e.code)
                 return False, True
