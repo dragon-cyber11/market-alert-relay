@@ -169,10 +169,12 @@ def parse_utc(s):
 
 
 # 최고중요도(ImpID=1)는 아니지만 해외선물 트레이더에겐 중요해서 항상 포함하는 항목.
-# EIA 주간 석유재고(원유/휘발유/증류유/쿠싱)는 ImpID 2~3 이라 기본 필터엔 안 걸리지만
-# 원유선물(CL)을 크게 움직이므로 프리알림/원출처 감시 대상에 넣는다.
+# EIA 석유재고·PPI·GDP 는 ImpID 가 2 이하로 내려오는 경우가 있어 기본 필터(ImpID=1)에
+# 안 걸릴 수 있지만, 선물을 크게 움직이므로 프리알림/원출처 감시 대상에 넣는다.
 # (일간·주간 캘린더 다이제스트는 include_extra=False 라 영향 없음)
-ALWAYS_INCLUDE = re.compile(r"EIA (Crude|Gasoline|Distillate)[^,]*Invent", re.IGNORECASE)
+ALWAYS_INCLUDE = re.compile(
+    r"EIA (Crude|Gasoline|Distillate)[^,]*Invent|producer price|\bPPI\b|"
+    r"\bGDP\b|gross domestic product", re.IGNORECASE)
 
 
 def pick_events(cal, start_utc, end_utc, include_extra=False):
