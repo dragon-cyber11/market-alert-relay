@@ -299,7 +299,7 @@ LAST_SEND_STATUS = []
 #   안 붙여서(_SIREN_DISABLED) 매 알림마다 400→재시도로 요청이 2배 되는 걸 막는다.
 SIREN_CHAR = "\U0001F6A8"
 SIREN_CUSTOM_EMOJI_ID = (os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
-                         or "5213285132709929474")
+                         or "5395695537687123235")
 _SIREN_DISABLED = False    # 이 프로세스에서 커스텀 이모지가 거부된 적이 있으면 True
 
 
