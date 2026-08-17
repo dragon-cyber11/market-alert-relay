@@ -52,8 +52,8 @@ STATE_PATH = ".state/cal_sent.json"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
-HEADER_DAY = "📈 주요 경제일정"
-HEADER_WEEK = "📈 이번주 주요 경제일정"
+HEADER_DAY = "📈 주요 경제일정 (한국시간)"
+HEADER_WEEK = "📈 이번주 주요 경제일정 (한국시간)"
 
 WANT_IMP = {"1"}          # 최고 중요도만. 2까지 넣으려면 {"1", "2"}
 LATE_LIMIT_HOUR = 11      # 예약이 이 시각을 넘게 밀리면 그 날은 포기
