@@ -1,0 +1,17 @@
+# 사이렌 커스텀 이모지 엔티티를 텔레그램이 저장하는지 진단(응답 entities 출력).
+name: Emoji send debug
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Debug send
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: python3 scripts/emoji_send_debug.py
