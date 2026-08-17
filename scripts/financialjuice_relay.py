@@ -293,16 +293,15 @@ def translate_to_ko(text):
 # 마지막 전송 결과를 하트비트에 남기기 위한 기록용 (뉴스가 안 올 때 원인 파악용)
 LAST_SEND_STATUS = []
 
-# 🚨(사이렌)을 움직이는 커스텀 이모지로 보낸다. custom_emoji_id 는 공개
-# 스티커셋(t.me/addemoji/Decoration_Pack)의 공개 식별자라 비밀이 아니므로 그냥 박는다.
-# 다른 이모지로 바꾸고 싶으면 이 값만 갈면 된다(환경변수로도 덮어쓸 수 있음).
-#   [주의] 텔레그램은 봇이 custom_emoji 를 보내려면 Fragment 에서 사용자명을 산
-#   봇이어야 한다. 자격이 없으면 400 을 주는데, 그때 엔티티를 빼고 한 번 더 보내
-#   (=평범한 🚨) 알림이 사라지지 않게 하고, 이후엔 이 프로세스 동안 엔티티를 아예
-#   안 붙여서(_SIREN_DISABLED) 매 알림마다 400→재시도로 요청이 2배 되는 걸 막는다.
+# 🚨 를 움직이는 커스텀 이모지로 보내는 기능(현재 비활성 - 기본값 비어 있음).
+#   [확인된 사실] 텔레그램은 봇이 custom_emoji 를 보내려면 Fragment 에서 사용자명을
+#   산 봇이어야 한다. 자격이 없으면 400 이 아니라 200(ok)을 주면서 엔티티를 조용히
+#   제거해 버린다(응답 entities=null 로 실측 확인). 즉 채널 부스트·이모지·ID 가 전부
+#   정상이어도 봇 자격이 없으면 평범한 🚨 로만 나간다. 이 봇은 자격이 없어 비워 둔다.
+#   봇이 Fragment 사용자명을 갖게 되면 SIREN_CUSTOM_EMOJI_ID 환경변수에 custom_emoji_id
+#   를 넣으면 곧바로 동작한다. (전송 로직/폴백은 그대로 두어 언제든 재활성 가능)
 SIREN_CHAR = "\U0001F6A8"
-SIREN_CUSTOM_EMOJI_ID = (os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
-                         or "5395695537687123235")
+SIREN_CUSTOM_EMOJI_ID = os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
 _SIREN_DISABLED = False    # 이 프로세스에서 커스텀 이모지가 거부된 적이 있으면 True
 
 
