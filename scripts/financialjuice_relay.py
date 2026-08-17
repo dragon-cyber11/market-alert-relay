@@ -672,14 +672,13 @@ def run_loop(duration_seconds):
         # 주기마다 비움. 안 비우면 프로세스가 사는 10분 내내 값이 쌓여서,
         # 초반에 한 번 실패한 기록이 이후 모든 하트비트 줄에 계속 따라붙음
         del LAST_SEND_STATUS[:]
-        try:
-            main()
-            note_success()
-        except Exception as e:
-            print("이번 주기 오류:", repr(e)[:300])
-            note_failure(e)
 
-        # 속보 릴레이와 분리. 지표 알림이 터져도 속보는 계속 나가야 함
+        # [순서 중요] 시간에 민감한 지표 감시를 뉴스 전송보다 '먼저' 돌린다.
+        # main()은 뉴스 배치를 건당 SEND_INTERVAL_SECONDS 간격으로 보내느라 한 주기가
+        # 길어질 수 있는데, 그 뒤에 지표를 확인하면 발표 순간에 뉴스가 몰릴 때 지표
+        # 알림이 그만큼 밀린다. 그래서 매 주기 맨 앞에서 지표부터 확인한다.
+        # (평소엔 무장된 발표가 없어 tick 이 즉시 리턴하므로 뉴스에 주는 지연은 사실상 0.
+        #  발표 창 안에서만 원출처 fetch ~1초가 뉴스보다 먼저 들어간다.)
         token = os.environ.get("TELEGRAM_BOT_TOKEN")
         if token and calendar_prealert is not None:
             try:
@@ -692,6 +691,14 @@ def run_loop(duration_seconds):
                     release_watch.tick(token, calendar_prealert._cal_cache)
                 except Exception as e:
                     print("지표 원출처 감시 오류:", repr(e)[:200])
+
+        # 속보 릴레이와 분리. 지표 알림이 터져도 속보는 계속 나가야 함
+        try:
+            main()
+            note_success()
+        except Exception as e:
+            print("이번 주기 오류:", repr(e)[:300])
+            note_failure(e)
 
         elapsed = time.time() - cycle_start
         remain = POLL_INTERVAL_SECONDS - elapsed
