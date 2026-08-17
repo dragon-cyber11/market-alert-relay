@@ -84,6 +84,9 @@ NOISE_KEYWORDS = [
     "grand slam", "tournament final",
     # 부고/의전성
     "obituary", "dies at age", "passes away", "royal wedding", "coronation ceremony",
+    # 파이낸셜주스 정기 자동 게시물 (본문 없이 반복되는 요약)
+    #   "Currency Strength Chart: Strongest: ... - Weakest" 처럼 통화 강도 순위만 나열
+    "currency strength",
 ]
 _NOISE_PATTERNS = [re.compile(re.escape(k), re.IGNORECASE) for k in NOISE_KEYWORDS]
 
