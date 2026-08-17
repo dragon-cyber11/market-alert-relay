@@ -564,6 +564,7 @@ def build_message(label, detail, events):
             if fc or pv:
                 line += " (예상 %s·이전 %s)" % (fc or "-", pv or "-")
         out.append(line)
+    out.append("#속보")
     return "\n".join(out)
 
 
