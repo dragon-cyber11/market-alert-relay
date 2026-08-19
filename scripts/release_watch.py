@@ -43,7 +43,13 @@ import html as html_mod
 
 STATE_FILE = os.path.join(".state", "release_watch.json")
 
-ARM_BEFORE_SECONDS = 120      # 발표 몇 초 전부터 baseline 을 떠 둘지
+# 발표 몇 초 전부터 baseline(발표 전 원문 지문)을 떠 둘지.
+# [중요] 넉넉히 잡아야 한다. 예전 120초는 너무 좁아서, 발표 순간 뉴스가 몰려
+# 한 주기(main 의 뉴스 배치 + 429 대기)가 그 2분 창을 통째로 가로지르면 감시가
+# 창 안에서 한 번도 안 돌아 baseline 을 못 잡고 조용히 유실됐다(실제 EIA 에서 발생).
+# baseline 은 처음 무장 때 한 번만 받아오고(그 뒤 발표까지 재요청 안 함) 커밋돼
+# 재시작에도 살아남으므로, 창을 크게 잡아도 요청은 발표당 1회뿐이다.
+ARM_BEFORE_SECONDS = 1800     # 발표 30분 전부터 baseline 확보 시도
 ARM_AFTER_SECONDS = 300       # 발표 후 몇 초까지 기다릴지
 FAST_POLL_SECONDS = 1         # 발표 직후 이 간격으로 확인
 SLOW_POLL_SECONDS = 5         # FAST_WINDOW 이후에는 이 간격으로 늦춤
