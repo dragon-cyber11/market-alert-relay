@@ -269,25 +269,61 @@ def write_last_id(value):
 
 
 # 가입/키 없이 쓸 수 있는 비공식 구글 번역 엔드포인트 (브라우저 구글 번역이 쓰는 것과 동일).
-# 막히거나 실패하면 원문만 전송되고 봇은 계속 돎.
 GOOGLE_UNOFFICIAL_URL = "https://translate.googleapis.com/translate_a/single"
 
 
-def translate_to_ko(text):
-    try:
-        params = urllib.parse.urlencode(
-            {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text})
-        req = urllib.request.Request(
-            "%s?%s" % (GOOGLE_UNOFFICIAL_URL, params),
-            headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode())
-        translated = "".join(seg[0] for seg in data[0] if seg and seg[0])
-        if translated:
-            return translated.strip()
-    except Exception as e:
-        print("번역 실패:", e)
+def _http_json(url, timeout):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8", "replace"))
+
+
+def _tr_google_clients5(text, timeout):
+    # 구글의 다른 호스트. gtx 가 429 로 막혀도 여기는 대개 열려 있다.
+    # 응답: ["번역문"] (문자열 배열) 또는 [["번역문", ...], ...]
+    url = "https://clients5.google.com/translate_a/t?" + urllib.parse.urlencode(
+        {"client": "dict-chrome-ex", "sl": "en", "tl": "ko", "q": text})
+    data = _http_json(url, timeout)
+    if isinstance(data, list) and data:
+        if isinstance(data[0], str):
+            return "".join(x for x in data if isinstance(x, str))
+        if isinstance(data[0], list):
+            return "".join(seg[0] for seg in data if seg and seg[0])
     return None
+
+
+def _tr_google_gtx(text, timeout):
+    url = "%s?%s" % (GOOGLE_UNOFFICIAL_URL, urllib.parse.urlencode(
+        {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text}))
+    data = _http_json(url, timeout)
+    return "".join(seg[0] for seg in data[0] if seg and seg[0])
+
+
+def _tr_mymemory(text, timeout):
+    url = "https://api.mymemory.translated.net/get?" + urllib.parse.urlencode(
+        {"q": text, "langpair": "en|ko"})
+    d = _http_json(url, timeout)
+    return (d.get("responseData") or {}).get("translatedText")
+
+
+# 하나가 429/실패하면 다음으로 넘어간다(전부 무료·키 불필요). 전부 실패하면 원문 전송.
+_TR_PROVIDERS = [_tr_google_clients5, _tr_google_gtx, _tr_mymemory]
+
+
+def translate_en_ko(text, timeout=15):
+    """영어 -> 한국어. 여러 무료 제공자를 순서대로 시도. 다 실패하면 None."""
+    for prov in _TR_PROVIDERS:
+        try:
+            r = prov(text, timeout)
+            if r and r.strip():
+                return r.strip()
+        except Exception as e:
+            print("번역 실패(%s): %s" % (prov.__name__, repr(e)[:80]))
+    return None
+
+
+def translate_to_ko(text):
+    return translate_en_ko(text)
 
 
 # 마지막 전송 결과를 하트비트에 남기기 위한 기록용 (뉴스가 안 올 때 원인 파악용)
