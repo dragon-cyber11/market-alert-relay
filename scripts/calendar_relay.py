@@ -217,14 +217,13 @@ def _budget_left():
 
 
 def _google(text, timeout=20):
-    params = urllib.parse.urlencode(
-        {"client": "gtx", "sl": "en", "tl": "ko", "dt": "t", "q": text})
-    req = urllib.request.Request(
-        "%s?%s" % (GOOGLE_UNOFFICIAL_URL, params),
-        headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        data = json.loads(resp.read().decode())
-    return "".join(seg[0] for seg in data[0] if seg and seg[0])
+    # 여러 무료 번역 제공자 폴백 체인을 financialjuice_relay 와 공유한다.
+    # (gtx 단일 엔드포인트가 429 로 막혀 번역이 통째로 멈추던 문제 해결)
+    import financialjuice_relay as fj
+    r = fj.translate_en_ko(text, timeout)
+    if r is None:
+        raise RuntimeError("모든 번역 제공자 실패")
+    return r
 
 
 def warm_translations(titles, chunk=20):
