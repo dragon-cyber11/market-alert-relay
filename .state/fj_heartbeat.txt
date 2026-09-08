@@ -1,1 +1,1 @@
-2026-09-08T06:03:18Z latest_newsid=9753408 count=20 send=0건성공 실패=retry_exhausted lag최근2건=11~11초(중앙11초)
+2026-09-08T06:14:05Z latest_newsid=9753431 count=20 send=8건성공 lag최근20건=50~744초(중앙488초)
