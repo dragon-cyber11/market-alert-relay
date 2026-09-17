@@ -1,1 +1,1 @@
-2026-09-17T08:41:53Z latest_newsid=9767117 count=20 send=보낼것없음 lag최근1건=12~12초(중앙12초)
+2026-09-17T08:50:45Z latest_newsid=9767117 count=20 send=보낼것없음
