@@ -314,8 +314,10 @@ def _tr_mymemory(text, timeout):
 _TR_PROVIDERS = [_tr_google_clients5, _tr_google_gtx, _tr_mymemory]
 
 
-def translate_en_ko(text, timeout=15):
-    """영어 -> 한국어. 여러 무료 제공자를 순서대로 시도. 다 실패하면 None."""
+def translate_en_ko(text, timeout=5):
+    """영어 -> 한국어. 여러 무료 제공자를 순서대로 시도. 다 실패하면 None.
+    timeout 은 제공자당. 정상 응답은 1초 안팎이고, 길게 잡으면 막힌 제공자에
+    붙들려 뉴스(와 같은 루프의 지표 감시)가 최대 3배만큼 밀린다."""
     for prov in _TR_PROVIDERS:
         try:
             r = prov(text, timeout)
