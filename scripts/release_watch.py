@@ -54,6 +54,7 @@ ARM_AFTER_SECONDS = 300       # 발표 후 몇 초까지 기다릴지
 FAST_POLL_SECONDS = 1         # 발표 직후 이 간격으로 확인
 SLOW_POLL_SECONDS = 5         # FAST_WINDOW 이후에는 이 간격으로 늦춤
 FAST_WINDOW_SECONDS = 60
+PRE_POLL_SECONDS = 20         # 발표 전 baseline 재시도 간격
 HTTP_TIMEOUT = 8              # 느린 응답에 붙들리면 감시 자체가 늦어짐
 
 BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -482,7 +483,8 @@ WATCHERS = [
      "cc": "US", "pattern": r"\bCPI\b|consumer price", "fetch": fetch_cpi},
     {"key": "empsit", "label": "🇺🇸 미국 고용",
      "cc": "US", "pattern": r"non.?farm|payroll|employment situation|unemployment",
-     "fetch": fetch_empsit},
+     # ADP 민간고용(수요일)도 'nonfarm' 에 걸려 BLS 페이지를 헛되이 두드리게 된다
+     "exclude": r"\bADP\b", "fetch": fetch_empsit},
     {"key": "pce",    "label": "🇺🇸 미국 PCE 물가",
      "cc": "US", "pattern": r"\bPCE\b|personal (income|consumption|spending)", "fetch": fetch_pce},
     {"key": "fomc",   "label": "🇺🇸 FOMC 금리결정",
@@ -530,6 +532,8 @@ def armed_events(watcher, cal_events, now_epoch):
             continue
         if not re.search(watcher["pattern"], e.get("Title") or "", re.I):
             continue
+        if watcher.get("exclude") and re.search(watcher["exclude"], e.get("Title") or "", re.I):
+            continue
         t = t_utc.timestamp()
         if not (t - ARM_BEFORE_SECONDS <= now_epoch <= t + ARM_AFTER_SECONDS):
             continue
@@ -542,7 +546,14 @@ def armed_events(watcher, cal_events, now_epoch):
 
 
 def due_to_poll(key, now_epoch, seconds_since_release):
-    gap = FAST_POLL_SECONDS if seconds_since_release <= FAST_WINDOW_SECONDS else SLOW_POLL_SECONDS
+    # 발표 전(baseline 확보 단계)에는 느리게. 1초로 두면 출처가 막혀 baseline 이
+    # 계속 실패할 때 30분 창 동안 초당 1회(약 1800회)를 쏴서 차단을 더 굳힌다.
+    if seconds_since_release < 0:
+        gap = PRE_POLL_SECONDS
+    elif seconds_since_release <= FAST_WINDOW_SECONDS:
+        gap = FAST_POLL_SECONDS
+    else:
+        gap = SLOW_POLL_SECONDS
     return now_epoch - _last_poll.get(key, 0) >= gap
 
 
