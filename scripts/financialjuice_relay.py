@@ -303,6 +303,10 @@ def _tr_mymemory(text, timeout):
     url = "https://api.mymemory.translated.net/get?" + urllib.parse.urlencode(
         {"q": text, "langpair": "en|ko"})
     d = _http_json(url, timeout)
+    # 한도 초과/500자 초과면 HTTP 200 인데 번역문 자리에 오류 문구를 넣어 준다
+    # ("QUERY LENGTH LIMIT EXCEEDED..." 실측). 상태값으로 걸러야 그게 채널에 안 나감
+    if str(d.get("responseStatus")) != "200":
+        raise RuntimeError("MyMemory 상태 %s" % d.get("responseStatus"))
     return (d.get("responseData") or {}).get("translatedText")
 
 
