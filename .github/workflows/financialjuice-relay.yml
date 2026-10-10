@@ -62,6 +62,13 @@ jobs:
         with:
           ref: main          # 대기열에 오래 있었어도 '실행 시점'의 최신 상태를 받아옴
 
+      # 실업수당(DOL)·BOJ 결정문이 PDF 라 글자 추출에 필요. 실패해도 그 두 감시만 꺼지고 나머지는 돎
+      - name: Install pypdf
+        run: |
+          python3 -m pip install --user --quiet --break-system-packages pypdf==6.0.0 \
+            || python3 -m pip install --user --quiet pypdf==6.0.0 \
+            || echo "pypdf 설치 실패: 실업수당/BOJ 원출처 감시만 꺼짐"
+
       - name: Poll feed continuously and send new items to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
