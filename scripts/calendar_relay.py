@@ -174,7 +174,9 @@ def parse_utc(s):
 # (일간·주간 캘린더 다이제스트는 include_extra=False 라 영향 없음)
 ALWAYS_INCLUDE = re.compile(
     r"EIA (Crude|Gasoline|Distillate)[^,]*Invent|producer price|\bPPI\b|"
-    r"\bGDP\b|gross domestic product", re.IGNORECASE)
+    r"\bGDP\b|gross domestic product|"
+    # 연속 실업수당은 중요도 2 로 와서 빠지면 원출처 알림에 예상/이전치가 안 붙는다
+    r"continued jobless claims", re.IGNORECASE)
 
 
 def pick_events(cal, start_utc, end_utc, include_extra=False):

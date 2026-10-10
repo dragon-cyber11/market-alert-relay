@@ -11,6 +11,9 @@
 #   고용 : https://www.bls.gov/news.release/empsit.nr0.htm   (08:30 ET)
 #   PCE  : https://apps.bea.gov/rss/rss.xml                  (08:30 ET)
 #   FOMC : https://www.federalreserve.gov/feeds/press_monetary.xml (14:00 ET)
+#   실업수당 : https://www.dol.gov/ui/data.pdf                  (목 08:30 ET, PDF)
+#   ECB  : https://www.ecb.europa.eu/rss/press.html           (14:15 CET)
+#   BOJ  : https://www.boj.or.jp/en/rss/whatsnew.xml          (시각 미정, 결정문 PDF)
 #
 #   * BLS 는 User-Agent 에 이메일이 있어야 통과한다. 브라우저 UA 도, URL 이
 #     들어간 UA 도 403 으로 막힌다(실측). 봇을 식별 가능하게 하라는 정책이라
@@ -451,9 +454,175 @@ def fetch_gdp():
     return None
 
 
+# ---------------------------------------------------------------- PDF 원문 (실업수당 / BOJ)
+#
+# DOL 실업수당과 BOJ 성명은 PDF 로만 나온다. BOJ 는 글자를 폰트 코드표로 감싸 둬서
+# 직접 풀기엔 손이 많이 가므로 순수 파이썬 라이브러리 pypdf 를 쓴다(워크플로에서 설치).
+# 없으면 이 두 감시만 꺼지고 나머지는 그대로 돈다.
+_pdf_notice_shown = False
+
+
+def pdf_text(raw):
+    global _pdf_notice_shown
+    try:
+        import pypdf
+    except ImportError:
+        if not _pdf_notice_shown:
+            _pdf_notice_shown = True
+            print("[지표감시] pypdf 가 없어 실업수당/BOJ 감시 꺼짐")
+        return None
+    reader = pypdf.PdfReader(io.BytesIO(raw))
+    return re.sub(r"\s+", " ", " ".join(p.extract_text() or "" for p in reader.pages[:2]))
+
+
+def http_get_bytes(url, ua, timeout=HTTP_TIMEOUT, method="GET"):
+    req = urllib.request.Request(url, method=method, headers={
+        "User-Agent": ua, "Cache-Control": "no-cache"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read(), r.headers
+
+
+def _bust(url):
+    """DOL 은 아카마이 캐시(max-age 약 7분)를 거친다. 발표 직후 옛 파일을 받지 않도록
+    쿼리를 붙여 캐시를 비켜 간다."""
+    return "%s?_=%d" % (url, int(time.time()))
+
+
+# 실업수당: 파일이 0.5MB 라 매초 받기엔 무겁다. 헤더(HEAD)의 Last-Modified 만 매번
+# 확인하고(발표 시각 12:30:00 GMT 로 정확히 찍힘, 실측), 바뀌었을 때만 본문을 받는다.
+# DOL 은 브라우저 UA 와 연락처 없는 봇 UA 를 403 으로 막는다. BLS 처럼 이메일이 든 UA,
+# 또는 파이썬 기본 UA 는 통과한다(실측). CONTACT_EMAIL 이 있으면 그걸 쓴다.
+_DOL_URL = "https://www.dol.gov/ui/data.pdf"
+
+
+def _dol_ua():
+    return bls_ua() or "Python-urllib/3"
+_claims_cache = {}      # Last-Modified -> (지문, detail)
+
+
+def _k(n):
+    """197,000 -> '197K', 1,716,000 -> '1,716K'"""
+    return "{:,}K".format(int(n.replace(",", "")) // 1000)
+
+
+def fetch_claims():
+    _, hdr = http_get_bytes(_bust(_DOL_URL), _dol_ua(), method="HEAD")
+    lm = hdr.get("Last-Modified") or ""
+    if lm and lm in _claims_cache:
+        return _claims_cache[lm]
+    raw, _ = http_get_bytes(_bust(_DOL_URL), _dol_ua(), timeout=15)
+    t = pdf_text(raw)
+    if not t:
+        return None
+    items = []
+    init = re.search(r"seasonally adjusted initial claims was ([\d,]+)", t, re.I)
+    if init:
+        items.append(_item("claims_init", "신규", _k(init.group(1))))
+    cont = re.search(r"insured unemployment during the week ending [A-Z][a-z]+ \d+ was ([\d,]+)", t, re.I)
+    if cont:
+        items.append(_item("claims_cont", "연속", _k(cont.group(1))))
+    if not items:
+        return None
+    wk = re.search(r"week ending ([A-Z][a-z]+) (\d+)", t)
+    week = ""
+    if wk and wk.group(1).lower() in _EN_MONTH:
+        week = "%s/%s 주간" % (_EN_MONTH[wk.group(1).lower()][:-1], wk.group(2))
+    got = ("%s|%s" % (week, "".join(i["value"] for i in items)), {"month": week, "items": items})
+    if lm:
+        _claims_cache.clear()
+        _claims_cache[lm] = got
+    return got
+
+
+# 중앙은행은 RSS 에 새 결정문 링크가 뜨는 것으로 감지하고, 본문은 링크당 한 번만 받는다.
+# RSS 에는 최근 15건 정도만 있어서 지난 회의 결정문이 이미 밀려나 있을 수 있다.
+# 그럴 땐 "없음" 자체를 기준으로 삼는다(NO_DOC). 그래야 새 결정문이 뜨는 순간 바뀐 것으로 잡힌다.
+NO_DOC = "<none>"
+_doc_cache = {}         # 결정문 링크 -> detail
+
+
+def _cached_doc(link, parse):
+    if link not in _doc_cache:
+        _doc_cache.clear()
+        _doc_cache[link] = parse(link)
+    return _doc_cache[link]
+
+
+_ECB_ACTION = {"raise": "인상", "increase": "인상", "lower": "인하", "reduce": "인하",
+               "cut": "인하", "keep": "동결", "leave": "동결", "maintain": "동결"}
+
+
+def _parse_ecb(link):
+    t = to_text(http_get(link, BROWSER_UA))
+    head = ""
+    m = re.search(r"decided to (raise|increase|lower|reduce|cut|keep|leave|maintain) "
+                  r"the three key ECB interest rates(?: by (\d+)\s+basis points)?", t, re.I)   # 숫자 뒤가 nbsp 인 경우 있음(실측)
+    if m:
+        act = _ECB_ACTION[m.group(1).lower()]
+        head = "%sbp %s" % (m.group(2), act) if m.group(2) else act
+    items = []
+    rates = re.search(r"deposit facility, the main refinancing operations and the marginal "
+                      r"lending facility[^.]*?(-?[\d.]+)%,\s*(-?[\d.]+)%", t, re.I)
+    if rates:
+        items.append(dict(_item("deposit", "예금금리", rates.group(1) + "%"), num=float(rates.group(1))))
+        items.append(dict(_item("refi", "기준금리(MRO)", rates.group(2) + "%"), num=float(rates.group(2))))
+    if not items:
+        items = [_item("plain", "", head or link)]
+        head = ""
+    return {"month": head, "items": items}
+
+
+def fetch_ecb():
+    body = http_get("https://www.ecb.europa.eu/rss/press.html", BROWSER_UA)
+    for it in _rss_items(body):
+        link = _tag(it, "link")
+        if _tag(it, "title") == "Monetary policy decisions" or re.search(r"/ecb\.mp\d{6}", link):
+            return link, _cached_doc(link, _parse_ecb)
+    return NO_DOC, None
+
+
+def _parse_boj(link):
+    raw, _ = http_get_bytes(link, BROWSER_UA, timeout=15)
+    t = pdf_text(raw) or ""
+    vote = re.search(r"by (?:an? )?(unanimous|\d+-\d+ majority) vote", t, re.I)
+    head = ""
+    if vote:
+        head = "만장일치" if vote.group(1).lower() == "unanimous" \
+            else "%s 다수결" % vote.group(1).split()[0]
+    rate = re.search(r"call rate to remain at around ([\d.]+)\s*percent", t, re.I)
+    if rate:
+        # 인상/인하/동결은 캘린더 이전치와 비교해 build_message 에서 붙인다(auto_action)
+        items = [dict(_item("rate", "정책금리", rate.group(1) + "%"),
+                      num=float(rate.group(1)), auto_action=True)]
+    else:
+        items = [_item("plain", "", link)]
+    return {"month": head, "items": items}
+
+
+def fetch_boj():
+    body = http_get("https://www.boj.or.jp/en/rss/whatsnew.xml", BROWSER_UA)
+    for it in _rss_items(body):
+        link = _tag(it, "link").replace("http://", "https://", 1)
+        # 결정문은 제목이 회의마다 달라서(동결/변경) 주소 형식으로 고른다: .../mpr_2026/k260918a.pdf
+        if re.search(r"/mopo/mpmdeci/mpr_\d{4}/k\d{6}a\.pdf$", link):
+            return link, _cached_doc(link, _parse_boj)
+    return NO_DOC, None
+
+
 # 캘린더 하위 항목 제목 -> 종류표. 추출 항목의 kind 와 짝지어 예상/이전치를 붙인다.
 def calendar_kind(title):
     t = (title or "").lower()
+    # 실업수당 / 중앙은행 금리. 아래 일반 규칙보다 먼저 걸러야 mom 으로 새지 않는다.
+    if "claim" in t:
+        if "continu" in t:
+            return "claims_cont"
+        return "claims_avg" if ("average" in t or "4-week" in t) else "claims_init"
+    if "deposit" in t:
+        return "deposit"
+    if "refinanc" in t:
+        return "refi"
+    if "rate decision" in t or "interest rate" in t or "policy rate" in t:
+        return "rate"
     # EIA 석유재고 (원유/휘발유/증류유). core/yoy 판정보다 먼저 걸러야 오분류가 없다.
     if "cushing" in t:
         return "cushing"
@@ -497,6 +666,20 @@ WATCHERS = [
      "cc": "US", "pattern": r"\bPPI\b|producer price", "fetch": fetch_ppi},
     {"key": "gdp",    "label": "🇺🇸 미국 GDP",
      "cc": "US", "pattern": r"\bGDP\b|gross domestic", "fetch": fetch_gdp},
+    {"key": "claims", "label": "🇺🇸 미국 실업수당 청구",
+     "cc": "US", "pattern": r"jobless claims", "exclude": r"average|4-week",
+     "fetch": fetch_claims},
+    {"key": "ecb",    "label": "🇪🇺 ECB 금리결정",
+     "cc": "EU", "pattern": r"\bECB\b.*(rate|deposit|refinanc)|deposit facility|refinancing rate",
+     "exclude": r"speaks|press conference|accounts|minutes", "fetch": fetch_ecb},
+    # BOJ 는 발표 시각이 정해져 있지 않다(캘린더 시각은 자리표시, 실제는 11:30~13:00 JST
+    # 무렵 회의가 끝나는 대로). 그래서 2시간 전부터 기준을 잡고, 캘린더 시각 전이라도
+    # 바뀌면 바로 보내며(early), 캘린더 시각 후 3시간까지 3초 간격으로 지켜본다.
+    {"key": "boj",    "label": "🇯🇵 BOJ 금리결정",
+     "cc": "JP", "pattern": r"\bBoJ\b.*(rate|policy)",
+     "exclude": r"speaks|press conference|minutes|summary|outlook|statement",
+     "fetch": fetch_boj, "arm_before": 7200, "arm_after": 3 * 3600,
+     "early": True, "slow_poll": 3},
 ]
 
 _last_poll = {}     # key -> 마지막 확인 시각
@@ -535,7 +718,9 @@ def armed_events(watcher, cal_events, now_epoch):
         if watcher.get("exclude") and re.search(watcher["exclude"], e.get("Title") or "", re.I):
             continue
         t = t_utc.timestamp()
-        if not (t - ARM_BEFORE_SECONDS <= now_epoch <= t + ARM_AFTER_SECONDS):
+        before = watcher.get("arm_before", ARM_BEFORE_SECONDS)
+        after = watcher.get("arm_after", ARM_AFTER_SECONDS)
+        if not (t - before <= now_epoch <= t + after):
             continue
         # 가장 이른 발표 시각의 묶음만. 같은 시각의 하위 항목들을 함께 모은다
         if best_t is None or t < best_t:
@@ -545,16 +730,28 @@ def armed_events(watcher, cal_events, now_epoch):
     return (best_t, group) if group else None
 
 
-def due_to_poll(key, now_epoch, seconds_since_release):
+def due_to_poll(key, now_epoch, seconds_since_release, watcher=None, has_base=False):
+    watcher = watcher or {}
     # 발표 전(baseline 확보 단계)에는 느리게. 1초로 두면 출처가 막혀 baseline 이
     # 계속 실패할 때 30분 창 동안 초당 1회(약 1800회)를 쏴서 차단을 더 굳힌다.
+    # 단 early 감시(BOJ)는 기준을 잡은 뒤엔 발표 전이라도 slow_poll 로 계속 본다.
     if seconds_since_release < 0:
-        gap = PRE_POLL_SECONDS
+        gap = (watcher.get("slow_poll", SLOW_POLL_SECONDS)
+               if has_base and watcher.get("early") else PRE_POLL_SECONDS)
     elif seconds_since_release <= FAST_WINDOW_SECONDS:
         gap = FAST_POLL_SECONDS
     else:
-        gap = SLOW_POLL_SECONDS
+        gap = watcher.get("slow_poll", SLOW_POLL_SECONDS)
     return now_epoch - _last_poll.get(key, 0) >= gap
+
+
+def _num(s):
+    m = re.search(r"-?\d+(?:\.\d+)?", str(s or "").replace(",", ""))
+    return float(m.group(0)) if m else None
+
+
+def _thousands(s):
+    return "{:,}K".format(int(s)) if s and s.isdigit() else s
 
 
 def build_message(label, detail, events):
@@ -568,16 +765,34 @@ def build_message(label, detail, events):
     for e in events or []:
         by_kind.setdefault(calendar_kind(e.get("Title")), e)
 
+    items = detail.get("items", [])
+    # 캘린더가 'ECB Rate Decision' 처럼 금리 하나만 주는데 결정문엔 금리가 둘(예금/MRO)
+    # 이면, 그 예상치(없으면 이전치)에 값이 가장 가까운 쪽에만 붙인다.
+    rate_e, rate_target = by_kind.get("rate"), None
+    cands = [it for it in items if it.get("num") is not None and it["kind"] not in by_kind]
+    if rate_e is not None and cands:
+        ref = _num(rate_e.get("Forecast")) if _num(rate_e.get("Forecast")) is not None \
+            else _num(rate_e.get("Previous"))
+        rate_target = cands[0] if ref is None else min(cands, key=lambda it: abs(it["num"] - ref))
+
     month = detail.get("month") or ""
     out = ["🚨 %s%s" % (label, " (%s)" % month if month else "")]
-    for it in detail.get("items", []):
+    for it in items:
         line = ("%s %s" % (it["label"], it["value"])).strip()
         # kind 를 정확히 맞는 캘린더 항목하고만 짝짓는다. core(전월)에 core_yoy(전년)를
         # 붙이면 월간 값 옆에 연간 예상치가 붙어 오히려 오해를 준다.
-        e = by_kind.get(it["kind"])
+        e = by_kind.get(it["kind"]) or (rate_e if it is rate_target else None)
         if e is not None:
             fc = cal.val(e.get("Forecast"))
             pv = cal.val(e.get("Previous"))
+            # 실업수당은 캘린더가 천 단위 숫자만 준다("200") -> 우리 표기("197K")에 맞춤
+            if it["kind"].startswith("claims_"):
+                fc, pv = _thousands(fc), _thousands(pv)
+            # BOJ 결정문은 인상/인하를 글로 안 쓰고 새 금리만 적는다 -> 이전치와 비교
+            prev = _num(pv)
+            if it.get("auto_action") and prev is not None:
+                d = round(it["num"] - prev, 4)
+                line += " %s" % ("인상" if d > 0 else "인하" if d < 0 else "동결")
             if fc or pv:
                 line += " (예상 %s·이전 %s)" % (fc or "-", pv or "-")
         out.append(line)
@@ -611,15 +826,19 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
             continue
 
         since = now_epoch - t_release
-        if not due_to_poll(w["key"], now_epoch, since):
-            continue
-        _last_poll[w["key"]] = now_epoch
+        has_base = slot.get("baseline_for") == event_id
+        pre = now_epoch < t_release
 
         # 발표 전에 기준을 이미 잡아 뒀으면 발표 시각까지는 더 받아올 필요가 없다.
         # 이 가드가 없으면 발표 2분 전부터 1초마다(FAST 창) 본문 페이지를 다시 받아
         # BEA/Fed 에 발표 직전 100여 회를 쏘게 된다(정작 잡아야 할 순간에 차단 위험).
-        if now_epoch < t_release and slot.get("baseline_for") == event_id:
+        # 발표 시각이 정해지지 않은 early 감시(BOJ)만 예외로 계속 본다.
+        if pre and has_base and not w.get("early"):
             continue
+
+        if not due_to_poll(w["key"], now_epoch, since, w, has_base):
+            continue
+        _last_poll[w["key"]] = now_epoch
 
         try:
             got = w["fetch"]()
@@ -631,18 +850,17 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
         fingerprint, detail = got
 
         # 발표 전이면 기준만 잡아 둔다. 지난달 내용을 새 발표로 오인하지 않기 위함
-        if now_epoch < t_release:
-            if slot.get("baseline_for") != event_id:
-                state[w["key"]] = {"baseline": fingerprint, "baseline_for": event_id}
-                save_state(state)
-                print("[지표감시] %s 기준 확보 (발표 %.0f초 전)" % (w["key"], t_release - now_epoch))
+        if pre and not has_base:
+            state[w["key"]] = {"baseline": fingerprint, "baseline_for": event_id}
+            save_state(state)
+            print("[지표감시] %s 기준 확보 (발표 %.0f초 전)" % (w["key"], t_release - now_epoch))
             continue
 
         # 기준을 못 잡은 채로 발표 시각을 넘겼으면(릴레이가 그 사이 죽어 있었음)
         # 지금 내용이 새 것인지 판단할 수 없다. 오발송보다 침묵이 낫다.
         if slot.get("baseline_for") != event_id:
             continue
-        if fingerprint == slot.get("baseline"):
+        if fingerprint == slot.get("baseline") or detail is None:
             continue
 
         msg = build_message(w["label"], detail, events)
@@ -652,7 +870,7 @@ def tick(bot_token, cal_events, now_epoch=None, send=None):
             state[w["key"]] = slot
             save_state(state)
             sent += int(ok)
-            print("[지표감시] %s 발송 (발표 %.1f초 후)" % (w["key"], since))
+            print("[지표감시] %s 발송 (일정 시각 대비 %+.1f초)" % (w["key"], since))
 
     return sent
 
