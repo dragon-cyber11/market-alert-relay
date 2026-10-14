@@ -1,1 +1,1 @@
-2026-10-14T20:41:01Z latest_newsid=9805828 count=20 send=0건성공 실패=server_error_502 lag최근5건=11~116초(중앙64초)
+2026-10-14T20:51:03Z latest_newsid=9805828 count=20 send=보낼것없음 lag최근9건=139~346초(중앙323초)
