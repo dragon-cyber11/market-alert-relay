@@ -297,6 +297,12 @@ def fetch_pce():
                             r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent", page, re.I)
             if yoy:
                 items.append(_item("yoy", "전년", _signed(yoy.group(1), yoy.group(2))))
+                # 근원 전년: 전년 문장 바로 뒤의 "Excluding food and energy ..." (시장이 가장 보는 값)
+                cy = re.search(r"[Ee]xcluding food and energy,? the PCE price index "
+                               r"(increased|decreased|rose|declined)\s+([\d.]+)\s+percent",
+                               page[yoy.end():])
+                if cy:
+                    items.append(_item("core_yoy", "근원 전년", _signed(cy.group(1), cy.group(2))))
         except Exception as e:
             print("[지표감시] PCE 본문 실패:", repr(e)[:120])
         if not items:
@@ -501,8 +507,9 @@ _claims_cache = {}      # Last-Modified -> (지문, detail)
 
 
 def _k(n):
-    """197,000 -> '197K', 1,716,000 -> '1,716K'"""
-    return "{:,}K".format(int(n.replace(",", "")) // 1000)
+    """197,000 -> '197K', 1,716,000 -> '1.716M' (캘린더 표기 198k / 1.72M 와 같은 꼴)"""
+    v = int(n.replace(",", ""))
+    return "%.3fM" % (v / 1e6) if v >= 1000000 else "%dK" % (v // 1000)
 
 
 def fetch_claims():
@@ -623,6 +630,16 @@ def calendar_kind(title):
         return "refi"
     if "rate decision" in t or "interest rate" in t or "policy rate" in t:
         return "rate"
+    # PCE 와 같은 시각에 뜨는 다른 항목들. 따로 떼지 않으면 'mom' 으로 분류돼서
+    # PCE 전월 옆에 분기 PCE(연율)나 소득/소비 예상치가 붙는다(10/29 실제 발생).
+    if "deflator" in t:
+        return "deflator"
+    if "advance" in t and "price" in t and "gdp" not in t:
+        return "quarterly"          # US (Core) PCE Prices Advance: 분기 연율
+    if "income" in t:
+        return "income"
+    if "consumption" in t or "spending" in t:
+        return "spending"
     # EIA 석유재고 (원유/휘발유/증류유). core/yoy 판정보다 먼저 걸러야 오분류가 없다.
     if "cushing" in t:
         return "cushing"
@@ -751,7 +768,11 @@ def _num(s):
 
 
 def _thousands(s):
-    return "{:,}K".format(int(s)) if s and s.isdigit() else s
+    """캘린더 실업수당 표기 통일: '200' -> '200K', '1700' -> '1.700M', '198k' -> '198K'"""
+    if s and s.isdigit():
+        n = int(s)
+        return "%.3fM" % (n / 1000) if n >= 1000 else "%dK" % n
+    return s[:-1] + "K" if s and s.endswith("k") else s
 
 
 def build_message(label, detail, events):
