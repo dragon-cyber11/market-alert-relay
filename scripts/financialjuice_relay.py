@@ -488,6 +488,11 @@ SIREN_CUSTOM_EMOJI_ID = os.environ.get("SIREN_CUSTOM_EMOJI_ID", "").strip()
 _SIREN_DISABLED = False    # 이 프로세스에서 커스텀 이모지가 거부된 적이 있으면 True
 
 
+def _u16(s):
+    """텔레그램 entity 오프셋/길이 단위(UTF-16 코드 단위)."""
+    return len(s.encode("utf-16-le")) // 2
+
+
 def _siren_entities(msg):
     """메시지에 🚨 가 있으면 그 자리를 움직이는 커스텀 이모지로 바꾸는
     entities(JSON 문자열)를 만든다. 없거나 이미 거부된 적이 있으면 None.
@@ -505,7 +510,7 @@ def _siren_entities(msg):
     }])
 
 
-def send_telegram(bot_token, chat_id, msg, max_retry=2):
+def send_telegram(bot_token, chat_id, msg, max_retry=2, quote_from=None):
     """텔레그램 전송. (성공여부, 더이상재시도안함) 을 돌려줌.
 
     [핵심 원칙] 텔레그램에서 '응답을 받았을 때만' 전송 여부를 판단한다.
@@ -522,7 +527,16 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
     - 응답 없음(타임아웃 등)  -> (False, True)   전달 여부 불명. 재시도 안 함(중복 방지)
     """
     url = "https://api.telegram.org/bot%s/sendMessage" % bot_token
-    entities = _siren_entities(msg)   # None 이면 평범한 전송과 완전히 동일
+    # 서식(entity): 🚨 커스텀 이모지(현재 비활성) + 원문·시간 인용 블록.
+    # 인용은 quote_from(문자 위치)부터 끝까지. 오프셋은 텔레그램 규격대로 UTF-16.
+    # 비어 있으면 평범한 전송과 완전히 동일하다.
+    siren = _siren_entities(msg)
+    ents = json.loads(siren) if siren else []
+    if quote_from is not None and 0 < quote_from < len(msg):
+        ents.append({"type": "blockquote",
+                     "offset": _u16(msg[:quote_from]),
+                     "length": _u16(msg[quote_from:])})
+    entities = json.dumps(ents) if ents else None
 
     def build(with_entities):
         fields = {"chat_id": chat_id, "text": msg}
@@ -568,9 +582,11 @@ def send_telegram(bot_token, chat_id, msg, max_retry=2):
                 if entities is not None:
                     # 커스텀 이모지가 거부됐으니 이 프로세스 동안은 더 시도하지 않는다.
                     # (봇 자격 미달이면 매 알림마다 400 이 나므로 요청 낭비를 막음)
+                    # 인용 서식만 있었다면 서식만 빼고 다시 보낸다.
                     global _SIREN_DISABLED
-                    _SIREN_DISABLED = True
-                    print("텔레그램 400, 커스텀 이모지 빼고 재시도(이후 비활성): %s" % body)
+                    if siren:
+                        _SIREN_DISABLED = True
+                    print("텔레그램 400, 서식 빼고 재시도: %s" % body)
                     try:
                         req = urllib.request.Request(url, data=build(False))
                         with urllib.request.urlopen(req, timeout=20) as r:
@@ -793,12 +809,18 @@ def main():
         kst_time = time.strftime("%H:%M", time.gmtime(item["epoch"] + 9 * 3600))
         prefix = "\U0001F6A8 " if item["critical"] else ""
 
+        # 번역문은 본문, 원문과 시간은 텔레그램 인용 블록(왼쪽 세로줄)으로 붙인다.
+        # 시간은 인용 안에서도 원문과 별도 줄(사용자 지시: 시간은 별도 줄).
         if translated and translated.lower() != title.lower():
-            msg = "%s%s\n(원문: %s)\n(%s)" % (prefix, clip(translated), title, kst_time)
+            head = "%s%s" % (prefix, clip(translated))
+            quote = "%s\n%s" % (title, kst_time)
         else:
-            msg = "%s%s\n(%s)" % (prefix, title, kst_time)
+            head = "%s%s" % (prefix, title)
+            quote = kst_time
+        msg = head + "\n" + quote
 
-        ok, permanent = send_telegram(bot_token, CHAT_ID, msg)
+        ok, permanent = send_telegram(bot_token, CHAT_ID, msg,
+                                      quote_from=len(head) + 1)
         if ok:
             sent_count += 1
             last_ok_nid = item["nid"]
