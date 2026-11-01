@@ -323,6 +323,7 @@ GEMINI_COOLDOWN = 900        # 거절(한도·권한) 후 Gemini 를 쉬는 시�
 GEMINI_SLOW_COOLDOWN = 300   # 타임아웃(느림) 후 쉬는 시간(초)
 _gem_off_until = 0.0
 _gem_model = None            # 프로세스당 한 번만 고른다
+_HAN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 
 
 def _gem_req(path, body=None, timeout=8):
@@ -375,10 +376,18 @@ def gemini_translate(text, src="English", timeout=8):
         return None
     prompt = (
         "Translate the following %s financial breaking-news headline into "
-        "natural Korean, in the terse style of a Korean wire-service headline. "
-        "Keep numbers, percentages, units, tickers and names exact; use the "
-        "common Korean spelling for well-known people and institutions. "
-        "Output only the Korean translation, nothing else.\n\n%s" % (src, text))
+        "natural Korean, in the terse style of a Korean wire-service headline.\n"
+        "Rules:\n"
+        "- Write everything in Hangul. Never output Chinese characters (Hanzi/Hanja).\n"
+        "- Expand Chinese-character abbreviations into their usual Korean names "
+        "(e.g. 沪深 -> 상하이·선전, 美联储 -> 연준).\n"
+        "- Keep acronyms written in Latin letters exactly as they are "
+        "(OPEC+, ECB, Fed, IMF, AI, ETF); do not spell them out.\n"
+        "- Keep numbers, percentages, currencies, units and tickers exactly as in the source.\n"
+        "- Use the common Korean spelling for well-known people and institutions.\n"
+        "- Translate only what the source says. Never add names, committees, "
+        "explanations, quotation marks or details that are not in the source.\n"
+        "- Output only the Korean translation, nothing else.\n\n%s" % (src, text))
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0, "maxOutputTokens": 1024},
@@ -389,18 +398,35 @@ def gemini_translate(text, src="English", timeout=8):
                 "HARM_CATEGORY_SEXUALLY_EXPLICIT",
                 "HARM_CATEGORY_DANGEROUS_CONTENT")],
     }
-    try:
-        model = _gem_pick_model()
-        d = _gem_req("/%s:generateContent" % model, body, timeout=timeout)
+    def ask(b):
+        d = _gem_req("/%s:generateContent" % model, b, timeout=timeout)
         parts = (((d.get("candidates") or [{}])[0].get("content") or {})
                  .get("parts") or [])
-        out = "".join(p.get("text", "") for p in parts).strip()
+        return "".join(p.get("text", "") for p in parts).strip()
+
+    try:
+        model = _gem_pick_model()
+        out = ask(body)
+        if out and _HAN.search(out):
+            # 한자가 섞였으면 한 번만 고쳐 쓰게 한다. 구글로 바로 넘기면 숫자·통화
+            # 오역(千亿级 -> '수천억 달러')이 더 나쁠 때가 있다.
+            retry = dict(body)
+            retry["contents"] = body["contents"] + [
+                {"role": "model", "parts": [{"text": out}]},
+                {"role": "user", "parts": [{"text":
+                    "Your answer contains Chinese characters. Rewrite it in "
+                    "Hangul only, same meaning. Output only the translation."}]}]
+            out = ask(retry)
         # 모델이 번역문 전체를 따옴표로 감쌌을 때만 벗긴다(문장 안 따옴표는 유지)
         if len(out) >= 2 and out[0] in '"“' and out[-1] in '"”' \
                 and out[1:-1].count('"') == 0:
             out = out[1:-1].strip()
         # 번역 대신 원문을 되돌려 줬거나 빈 응답이면 실패로 본다
         if not out or out == text.strip():
+            return None
+        # 한자가 한 글자라도 섞이면(産 같은 것) 구글 번역으로 넘긴다
+        if _HAN.search(out):
+            print("Gemini 결과에 한자 섞임(재요청 후에도) -> 구글 번역으로")
             return None
         return out
     except urllib.error.HTTPError as e:
@@ -418,7 +444,6 @@ def gemini_translate(text, src="English", timeout=8):
         print("Gemini 실패(%s)%s -> 구글 번역으로" % (
             type(e).__name__, " %d분 쉼" % (GEMINI_SLOW_COOLDOWN // 60) if slow else ""))
         return None
-
 
 def _tr_gemini(text, timeout):
     # 다른 제공자와 같은 모양. None 이면 translate_en_ko 가 다음 제공자로 넘어간다.

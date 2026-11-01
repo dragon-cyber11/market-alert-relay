@@ -1,0 +1,38 @@
+name: gemini-check
+
+# 1회용 점검: GEMINI_API_KEY 와 실제 번역 결과를 로그로만 확인. 텔레그램 발송 없음.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Translate samples (Gemini vs Google)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        working-directory: scripts
+        run: |
+          python3 - <<'PY'
+          import re, time, urllib.request, financialjuice_relay as fj
+          print("키 있음:", bool(fj.GEMINI_KEY))
+          raw = urllib.request.urlopen(urllib.request.Request(
+              "https://www.financialjuice.com/feed.ashx?xml=rss",
+              headers={"User-Agent": "Mozilla/5.0"}), timeout=20).read().decode("utf-8", "replace")
+          titles = [re.sub(r"^FinancialJuice:\s*", "", t) for t in re.findall(r"<title>(.*?)</title>", raw)[1:7]]
+          for t in titles:
+              t0 = time.time(); g = fj.gemini_translate(t); dt = time.time() - t0
+              goo = fj._tr_google_clients5(t, 5)
+              print("\n원문  :", t)
+              print("Gemini: %s  (%.1f초)" % (g, dt))
+              print("구글  :", goo)
+          print("\n선택된 모델:", fj._gem_model)
+          PY
