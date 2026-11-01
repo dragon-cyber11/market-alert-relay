@@ -810,13 +810,13 @@ def main():
         prefix = "\U0001F6A8 " if item["critical"] else ""
 
         # 번역문은 본문, 원문과 시간은 텔레그램 인용 블록(왼쪽 세로줄)으로 붙인다.
-        # 시간은 인용 안에서도 원문과 별도 줄(사용자 지시: 시간은 별도 줄).
+        # 시간은 인용 안에서 원문과 같은 줄: "원문 (HH:MM)" (사용자 지시)
         if translated and translated.lower() != title.lower():
             head = "%s%s" % (prefix, clip(translated))
-            quote = "%s\n%s" % (title, kst_time)
+            quote = "%s (%s)" % (title, kst_time)
         else:
             head = "%s%s" % (prefix, title)
-            quote = kst_time
+            quote = "(%s)" % kst_time
         msg = head + "\n" + quote
 
         ok, permanent = send_telegram(bot_token, CHAT_ID, msg,
