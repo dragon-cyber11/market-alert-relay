@@ -310,8 +310,124 @@ def _tr_mymemory(text, timeout):
     return (d.get("responseData") or {}).get("translatedText")
 
 
-# 하나가 429/실패하면 다음으로 넘어간다(전부 무료·키 불필요). 전부 실패하면 원문 전송.
-_TR_PROVIDERS = [_tr_google_clients5, _tr_google_gtx, _tr_mymemory]
+# ── Gemini(LLM) 번역 — 1순위. 실패하면 기존 구글 번역 체인으로 넘어간다 ──
+# 키(GEMINI_API_KEY 시크릿)가 없으면 아예 안 쓰고 예전처럼 동작한다.
+# 무료 티어 한도(하루 수백~천여 회, 모델마다 다름)를 넘거나 키가 막히면
+# 일정 시간 Gemini 를 건너뛴다. 건마다 헛시도하면 속보가 그만큼 늦어진다.
+# 모델 이름은 자주 바뀌므로 박아두지 않고, 키로 쓸 수 있는 모델 목록에서
+# Flash-Lite 최신 버전을 고른다(GEMINI_MODEL 환경변수로 덮어쓸 수 있다).
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "").strip()
+GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
+GEMINI_COOLDOWN = 900        # 거절(한도·권한) 후 Gemini 를 쉬는 시간(초)
+GEMINI_SLOW_COOLDOWN = 300   # 타임아웃(느림) 후 쉬는 시간(초)
+_gem_off_until = 0.0
+_gem_model = None            # 프로세스당 한 번만 고른다
+
+
+def _gem_req(path, body=None, timeout=8):
+    # 키는 URL 이 아니라 헤더로 보낸다. URL 에 넣으면 오류 로그에 찍힐 수 있다.
+    req = urllib.request.Request(
+        GEMINI_BASE + path,
+        data=json.dumps(body).encode() if body is not None else None,
+        headers={"x-goog-api-key": GEMINI_KEY,
+                 "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8", "replace"))
+
+
+def _ver(name):
+    """'models/gemini-3.5-flash-lite' -> (3, 5). 정렬용."""
+    m = re.search(r"gemini-(\d+)(?:\.(\d+))?", name)
+    return (int(m.group(1)), int(m.group(2) or 0)) if m else (0, 0)
+
+
+def _gem_pick_model():
+    global _gem_model
+    if _gem_model is not None:
+        return _gem_model
+    if GEMINI_MODEL:
+        _gem_model = GEMINI_MODEL if GEMINI_MODEL.startswith("models/") \
+            else "models/" + GEMINI_MODEL
+        return _gem_model
+    d = _gem_req("/models?pageSize=200", timeout=8)
+    ok = [m["name"] for m in d.get("models", [])
+          if "generateContent" in (m.get("supportedGenerationMethods") or [])
+          and "gemini" in m.get("name", "")]
+
+    def rank(n):
+        # Flash-Lite > Flash, 정식 > 미리보기, 그다음 버전 높은 순
+        tier = 2 if "flash-lite" in n else 1 if "flash" in n else 0
+        stable = 0 if re.search(r"preview|exp|tts|image|live|audio|thinking", n) else 1
+        return (tier, stable, _ver(n))
+    ok = [n for n in ok if "flash" in n]
+    if not ok:
+        raise RuntimeError("쓸 수 있는 flash 모델 없음")
+    _gem_model = max(ok, key=rank)
+    print("Gemini 모델 선택: %s" % _gem_model)
+    return _gem_model
+
+
+def gemini_translate(text, src="English", timeout=8):
+    """성공하면 번역문, 안 쓰거나 실패하면 None (호출자가 폴백)."""
+    global _gem_off_until
+    if not GEMINI_KEY or time.time() < _gem_off_until or not text:
+        return None
+    prompt = (
+        "Translate the following %s financial breaking-news headline into "
+        "natural Korean, in the terse style of a Korean wire-service headline. "
+        "Keep numbers, percentages, units, tickers and names exact; use the "
+        "common Korean spelling for well-known people and institutions. "
+        "Output only the Korean translation, nothing else.\n\n%s" % (src, text))
+    body = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0, "maxOutputTokens": 1024},
+        # 전쟁·제재 같은 뉴스가 안전 필터에 걸려 빈 응답이 오는 걸 줄인다
+        "safetySettings": [
+            {"category": c, "threshold": "BLOCK_NONE"} for c in (
+                "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_HATE_SPEECH",
+                "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "HARM_CATEGORY_DANGEROUS_CONTENT")],
+    }
+    try:
+        model = _gem_pick_model()
+        d = _gem_req("/%s:generateContent" % model, body, timeout=timeout)
+        parts = (((d.get("candidates") or [{}])[0].get("content") or {})
+                 .get("parts") or [])
+        out = "".join(p.get("text", "") for p in parts).strip()
+        # 모델이 번역문 전체를 따옴표로 감쌌을 때만 벗긴다(문장 안 따옴표는 유지)
+        if len(out) >= 2 and out[0] in '"“' and out[-1] in '"”' \
+                and out[1:-1].count('"') == 0:
+            out = out[1:-1].strip()
+        # 번역 대신 원문을 되돌려 줬거나 빈 응답이면 실패로 본다
+        if not out or out == text.strip():
+            return None
+        return out
+    except urllib.error.HTTPError as e:
+        if e.code in (400, 401, 403, 404, 429):
+            # 한도 초과·키 문제·모델 없음: 한동안 쉬고 구글로 간다
+            _gem_off_until = time.time() + GEMINI_COOLDOWN
+            print("Gemini HTTP %d -> %d분간 구글 번역으로" % (e.code, GEMINI_COOLDOWN // 60))
+        return None
+    except Exception as e:
+        # 느려서 타임아웃이 나면 잠깐 쉰다. 계속 두드리면 건마다 타임아웃만큼 밀린다.
+        slow = isinstance(e, TimeoutError) or isinstance(
+            getattr(e, "reason", None), TimeoutError)
+        if slow:
+            _gem_off_until = time.time() + GEMINI_SLOW_COOLDOWN
+        print("Gemini 실패(%s)%s -> 구글 번역으로" % (
+            type(e).__name__, " %d분 쉼" % (GEMINI_SLOW_COOLDOWN // 60) if slow else ""))
+        return None
+
+
+def _tr_gemini(text, timeout):
+    # 다른 제공자와 같은 모양. None 이면 translate_en_ko 가 다음 제공자로 넘어간다.
+    return gemini_translate(text, "English", timeout)
+
+
+# 순서대로 시도한다. Gemini 는 GEMINI_API_KEY 가 있을 때만 쓰고(무료 티어), 나머지는
+# 무료·키 불필요. 하나가 429/실패하면 다음으로 넘어가고, 전부 실패하면 원문 전송.
+_TR_PROVIDERS = [_tr_gemini, _tr_google_clients5, _tr_google_gtx, _tr_mymemory]
 
 
 def translate_en_ko(text, timeout=5):

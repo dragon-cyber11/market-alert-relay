@@ -49,6 +49,8 @@ jobs:
       - name: Post calendar
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # LLM 번역(선택). 없으면 구글 번역 체인만 쓴다.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           MODE="${{ github.event.inputs.mode }}"
           [ -z "$MODE" ] && MODE=normal

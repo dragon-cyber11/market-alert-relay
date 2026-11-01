@@ -72,6 +72,8 @@ jobs:
       - name: Poll feed continuously and send new items to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # LLM 번역(선택). 없으면 구글 번역 체인만 쓴다.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # BLS(미국 CPI/고용)는 UA 에 이메일이 있어야 응답함. 없으면 그 두 건만 건너뜀
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
         run: |
