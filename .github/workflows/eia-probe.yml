@@ -1,0 +1,55 @@
+name: eia-probe
+
+# 1회용 점검: GitHub 러너에서 EIA 주간 석유재고 경로가 닿는지 UA·경로별로 확인.
+# 텔레그램 발송 없음. 확인 끝나면 지운다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Probe EIA routes
+        env:
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+        working-directory: scripts
+        run: |
+          python3 - <<'PY'
+          import os, urllib.request, urllib.error, release_watch as rw
+          em = (os.environ.get("CONTACT_EMAIL") or "").strip()
+          uas = {
+            "browser": rw.BROWSER_UA,
+            "python-default": None,
+            "bot+email": ("market-alert-relay/1.0 (%s)" % em) if em else None,
+            "curl": "curl/8.5.0",
+          }
+          urls = [
+            "https://ir.eia.gov/wpsr/table1.csv",
+            "https://ir.eia.gov/wpsr/wpsrsummary.pdf",
+            "https://www.eia.gov/petroleum/supply/weekly/",
+            "https://www.eia.gov/dnav/pet/pet_stoc_wstk_dcu_nus_w.htm",
+            "https://api.eia.gov/v2/petroleum/stoc/wstk/data/?frequency=weekly&data[0]=value&facets[series][]=WCESTUS1&sort[0][column]=period&sort[0][direction]=desc&length=2",
+          ]
+          for u in urls:
+            for name, ua in uas.items():
+              if name == "bot+email" and not ua:
+                continue
+              h = {"Accept-Encoding": "identity"}
+              if ua: h["User-Agent"] = ua
+              try:
+                with urllib.request.urlopen(urllib.request.Request(u, headers=h), timeout=20) as r:
+                  b = r.read(160)
+                  print("200 %-15s %s | %r" % (name, u[:60], b[:80]))
+              except urllib.error.HTTPError as e:
+                print("%d %-15s %s | %s" % (e.code, name, u[:60], e.headers.get("Server")))
+              except Exception as e:
+                print("ERR %-15s %s | %s" % (name, u[:60], type(e).__name__))
+          PY
