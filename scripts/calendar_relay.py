@@ -10,7 +10,7 @@
 #   -> JSON 배열. 필드: RealDate, Time, Title, CountryCode, ImpID, TypeID,
 #      Forecast, Previous, Actual, Speaker, Breaking, Active, Company ...
 #
-# [검증된 사실 — 저장소의 fj_page.html(사이트 원본 캡처)과 대조해 확인]
+# [검증된 사실 — 사이트 원본 캡처와 대조해 확인]
 #   * RealDate 는 UTC 다.
 #       일본 서비스PPI 23:50 = JST 08:50 / 중국 공업이익 01:30 = CST 09:30
 #       EIA 원유재고 14:30 = ET 10:30 / FOMC 18:00 = ET 14:00
