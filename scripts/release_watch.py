@@ -377,7 +377,32 @@ def _mb(diff):
     return "%s%.1fM" % ("+" if r > 0 else "-", abs(r))
 
 
-def fetch_eia():
+_EIA_PDF_URL = "https://www.eia.gov/petroleum/supply/weekly/pdf/table1.pdf"
+# pdf_text() 는 공백을 하나로 합친 한 줄 텍스트를 준다. 라벨 뒤 각주 번호(1,3)와
+# 점선을 건너뛰고 숫자 세 개(이번주, 지난주, Difference=주간 변화)를 읽는다:
+#   'Commercial (Excluding SPR)1 ..... 410.6 412.5 -1.9 -0.5 ...'
+_EIA_NUM = r"(-?[\d,]+\.\d)"
+
+
+def _eia_pdf_row(text, label):
+    m = re.search(re.escape(label) + r"\d*\s*\.{2,}\s*" + r"\s+".join([_EIA_NUM] * 3), text)
+    return float(m.group(3).replace(",", "")) if m else None
+
+
+def _eia_result(week, diffs):
+    """두 경로(CSV/PDF)가 똑같은 지문을 만들도록 한 곳에서 조립한다.
+    week 는 'M/D/YY' 로 통일 — 표기가 다르면 같은 주를 새 발표로 오판한다."""
+    items = [_item(kind, ko, _mb(diffs[kind]))
+             for _label, kind, ko in _EIA_ROWS if kind in diffs]
+    if not items:
+        return None
+    # 이번주 날짜가 릴리스마다 바뀌므로 지문에 넣으면 새 발표 판정이 확실해진다
+    fingerprint = "%s|%s" % (week, "".join(i["value"] for i in items))
+    week_label = week.rsplit("/", 1)[0] if "/" in week else week   # 8/7/26 -> 8/7
+    return fingerprint, {"month": "%s 주간" % week_label if week_label else "", "items": items}
+
+
+def _fetch_eia_csv():
     body = http_get(_EIA_URL, BROWSER_UA)
     rows = [r for r in csv.reader(io.StringIO(body)) if r]
     if not rows:
@@ -385,22 +410,47 @@ def fetch_eia():
     header = rows[0]
     week = (header[1].strip() if len(header) > 1 else "")   # 예: 8/7/26
     by_label = {r[0].strip(): r for r in rows}
-    items = []
-    for label, kind, ko in _EIA_ROWS:
+    diffs = {}
+    for label, kind, _ko in _EIA_ROWS:
         r = by_label.get(label)
         if not r or len(r) < 4:
             continue
         try:
-            diff = float(r[3].replace(",", ""))
+            diffs[kind] = float(r[3].replace(",", ""))
         except ValueError:
             continue
-        items.append(_item(kind, ko, _mb(diff)))
-    if not items:
+    return _eia_result(week, diffs)
+
+
+def _fetch_eia_pdf():
+    raw, _ = http_get_bytes(_EIA_PDF_URL, BROWSER_UA)
+    text = pdf_text(raw)
+    if not text:
         return None
-    # 이번주 날짜가 릴리스마다 바뀌므로 지문에 넣으면 새 발표 판정이 확실해진다
-    fingerprint = "%s|%s" % (week, "".join(i["value"] for i in items))
-    week_label = week.rsplit("/", 1)[0] if "/" in week else week   # 8/7/26 -> 8/7
-    return fingerprint, {"month": "%s 주간" % week_label if week_label else "", "items": items}
+    m = re.search(r"Week Ending (\d{1,2})/(\d{1,2})/(\d{4})", text)
+    if not m:
+        return None
+    week = "%d/%d/%s" % (int(m.group(1)), int(m.group(2)), m.group(3)[2:])  # CSV 표기와 동일
+    diffs = {}
+    for label, kind, _ko in _EIA_ROWS:
+        v = _eia_pdf_row(text, label)   # 표1(재고)이 먼저 나오므로 첫 일치가 맞다
+        if v is not None:
+            diffs[kind] = v
+    return _eia_result(week, diffs)
+
+
+def fetch_eia():
+    """주간 석유재고. ir.eia.gov CSV 가 1순위, 막히면 www.eia.gov 의 같은 표 PDF.
+
+    [실측] ir.eia.gov(Amazon S3)는 발표일 발표 시간대에 GitHub 러너 IP 를 403 으로
+    막았다(10/21·10/28 모두 발표 30분 전부터 끝까지 90회 전부 403 -> 기준을 못 잡아
+    알림 0건). 평소(주말)엔 같은 러너에서 200. www.eia.gov 는 다른 호스트다.
+    두 경로 모두 같은 지문 형식이라 기준과 발표 후 출처가 달라도 오판하지 않는다."""
+    try:
+        return _fetch_eia_csv()
+    except Exception as e:
+        print("[지표감시] eia CSV 실패(%s) -> PDF 로" % repr(e)[:60])
+    return _fetch_eia_pdf()
 
 
 def fetch_ppi():
