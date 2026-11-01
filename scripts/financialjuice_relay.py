@@ -48,10 +48,19 @@ MAX_TITLE_CHARS = 1200
 # 뉴스를 이 시간 이상 계속 못 가져오면 텔레그램으로 장애 알림을 한 번 보냄
 FAIL_ALERT_AFTER_SECONDS = 300
 
-# 새 뉴스 확인 간격(초). 프로세스를 계속 살려두고 안에서 도는 구조라 짧게 잡아도
-# 파이썬 시작 비용이 다시 들지 않음.
-# 1초 = 분당 60회. 이보다 더 줄이면 파이낸셜주스 앞단(Cloudflare)이 과한 요청으로 보고
-# 차단할 위험이 커져서, 코드로 낼 수 있는 실질적 한계로 잡음.
+# 새 뉴스 확인 간격(초).
+# [실측 2026-11] GitHub 러너 IP 에서 파이낸셜주스는 토큰 버킷으로 막는다: 처음 ~34회는
+# 통과, 이후 2초에 1회만 통과(분당 30회). 1초 간격이던 때는 주기의 정확히 절반이
+# 429 였고(5.5시간 잡마다 ~9,800회) 실제 성공은 어차피 2초에 한 번이었다. 그래서
+# 2초 남짓으로 찌르면 429 는 사라지고 뉴스 속도는 같다. 2.2초(분당 27회)로 두어
+# 남는 몫을 경제일정(GetCalendar)·홈페이지(info) 요청이 쓰게 한다 — 이 둘도 같은
+# 버킷이라, 1초 폴링이 버킷을 다 먹던 때는 일정 갱신이 절반쯤 429 로 실패했다.
+# (샌드박스 IP 에선 1초 60회도 통과 — 러너 IP 대역에만 걸린 제한으로 보인다)
+NEWS_POLL_SECONDS = 2.2
+# 그래도 429 가 나면 버킷이 찰 때까지 이만큼 더 쉰다
+RATE_LIMIT_PAUSE_SECONDS = 2.0
+# 루프 자체는 1초 간격 그대로. 원출처 지표 감시(release_watch)는 발표 직후 1초마다
+# 원출처(BLS·BEA·연준 등, 파이낸셜주스 아님)를 확인해야 해서, 뉴스 요청만 위 간격으로 뗀다.
 POLL_INTERVAL_SECONDS = 1
 
 
@@ -848,7 +857,7 @@ def main():
 
 
 def run_loop(duration_seconds):
-    """프로세스를 살려둔 채 POLL_INTERVAL_SECONDS 간격으로 계속 확인.
+    """프로세스를 살려둔 채 POLL_INTERVAL_SECONDS 간격으로 계속 확인(429 면 더 쉼).
     매 주기 파이썬을 새로 띄우던 방식의 시작 비용(0.3~0.5초)이 사라져서 더 빠름.
     duration_seconds 가 지나면 종료 -> 워크플로가 상태를 커밋하고 다시 띄움."""
     # 지표 발표 5분 전 알림. 예약(cron)은 수십 분씩 밀려서 못 쓰고,
@@ -872,6 +881,7 @@ def run_loop(duration_seconds):
         print("지표 원출처 감시 사용 안 함:", repr(e)[:200])
 
     end = time.time() + duration_seconds
+    next_news = 0.0          # 다음 파이낸셜주스 뉴스 요청 시각
     while time.time() < end:
         cycle_start = time.time()
         # 주기마다 비움. 안 비우면 프로세스가 사는 10분 내내 값이 쌓여서,
@@ -898,15 +908,23 @@ def run_loop(duration_seconds):
                     print("지표 원출처 감시 오류:", repr(e)[:200])
 
         # 속보 릴레이와 분리. 지표 알림이 터져도 속보는 계속 나가야 함
-        try:
-            main()
-            note_success()
-        except Exception as e:
-            print("이번 주기 오류:", repr(e)[:300])
-            note_failure(e)
+        if time.time() >= next_news:
+            pause = 0.0
+            try:
+                main()
+                note_success()
+            except Exception as e:
+                print("이번 주기 오류:", repr(e)[:300])
+                note_failure(e)
+                if isinstance(e, urllib.error.HTTPError) and e.code == 429:
+                    pause = RATE_LIMIT_PAUSE_SECONDS   # 계속 두드리면 안 풀린다
+            # 요청 '시작' 기준으로 간격을 맞춘다(뉴스 전송에 시간이 걸려도 누적 지연 없음)
+            next_news = cycle_start + NEWS_POLL_SECONDS + pause
 
-        elapsed = time.time() - cycle_start
-        remain = POLL_INTERVAL_SECONDS - elapsed
+        # 다음 1초 눈금과 다음 뉴스 요청 중 빠른 쪽에 깬다. 1초 눈금만 따르면
+        # 2.2초 간격이 3초로 반올림된다.
+        wake = min(cycle_start + POLL_INTERVAL_SECONDS, next_news)
+        remain = wake - time.time()
         if remain > 0:
             time.sleep(min(remain, max(0, end - time.time())))
 
