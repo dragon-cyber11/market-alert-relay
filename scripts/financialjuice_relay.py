@@ -945,6 +945,14 @@ def run_loop(duration_seconds):
                 except Exception as e:
                     print("지표 원출처 감시 오류:", repr(e)[:200])
 
+        # 경제일정(한국 아침·미국 아침·주간). 30초마다 판정, 하루 한 번은 cal_sent.json.
+        if token:
+            try:
+                import calendar_relay
+                calendar_relay.tick(token)
+            except Exception as e:
+                print("경제일정 발송 오류:", repr(e)[:200])
+
         # 속보 릴레이와 분리. 지표 알림이 터져도 속보는 계속 나가야 함
         if time.time() >= next_news:
             pause = 0.0

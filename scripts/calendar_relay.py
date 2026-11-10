@@ -466,7 +466,7 @@ def find_slot(key):
     raise KeyError(key)
 
 
-def due_slot(now_utc, state):
+def due_slot(now_utc, state, quiet=False):
     """지금 보내야 할 슬롯을 돌려줌. 없으면 None."""
     for slot in SLOTS:
         key, tzname, (hh, mm), dow, _hours, label = slot
@@ -476,9 +476,10 @@ def due_slot(now_utc, state):
         in_time = local.hour < LATE_LIMIT_HOUR
         today = local.strftime("%Y-%m-%d")
         already = state.get(key) == today
-        print("  %-6s %-12s 현지 %s | 요일=%s 시각도달=%s 유효=%s 발송함=%s"
-              % (key, label, local.strftime("%m-%d %H:%M %a"),
-                 day_ok, after, in_time, already))
+        if not quiet:
+            print("  %-6s %-12s 현지 %s | 요일=%s 시각도달=%s 유효=%s 발송함=%s"
+                  % (key, label, local.strftime("%m-%d %H:%M %a"),
+                     day_ok, after, in_time, already))
         if day_ok and after and in_time and not already:
             return slot, today
     return None, None
@@ -509,6 +510,11 @@ def main():
         today = None
         print("수동 실행(%s) — 슬롯 판단 건너뜀" % mode)
 
+    send_slot(token, slot, today, state, now_utc, dry)
+
+
+def send_slot(token, slot, today, state, now_utc, dry=False):
+    """슬롯 하나를 만들어 보내고 상태를 기록한다. 릴레이 루프도 이걸 부른다."""
     key, _tz, _at, _dow, hours, label = slot
     print("발송 슬롯: %s (%s), 앞으로 %d시간" % (key, label, hours))
 
@@ -542,6 +548,32 @@ def main():
 
     print("전송 완료" if ok else "일부 전송 실패")
 
+
+
+_tick_next = 0.0
+TICK_SECONDS = 30
+
+
+def tick(token, now_utc=None):
+    """
+    릴레이 루프가 매 주기 부른다(30초마다 실제 판정).
+
+    GitHub 예약 실행은 몇 시간씩 밀리거나 빠져서(실측 11월: 하루 1~2회만,
+    06:25 목표가 09:30~12:40 에 뜨거나 아예 누락, 미국 아침은 10/25 이후 0회)
+    상시 도는 릴레이 루프에서 보낸다. 슬롯별 하루 한 번은 cal_sent.json 이 지킨다.
+    """
+    global _tick_next
+    now = time.time()
+    if now < _tick_next:
+        return
+    _tick_next = now + TICK_SECONDS
+    now_utc = now_utc or datetime.now(timezone.utc)
+    state = load_state()
+    slot, today = due_slot(now_utc, state, quiet=True)
+    if slot is None:
+        return
+    print("[경제일정] %s 발송 시작" % slot[0])
+    send_slot(token, slot, today, state, now_utc)
 
 if __name__ == "__main__":
     main()
