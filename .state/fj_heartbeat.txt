@@ -1,1 +1,1 @@
-2026-11-14T20:22:08Z latest_newsid=9852380 count=20 send=0건성공 실패=server_error_502 lag최근7건=11~168초(중앙89초)
+2026-11-14T20:31:43Z latest_newsid=9852381 count=20 send=0건성공 실패=server_error_502 lag최근20건=238~743초(중앙534초)
