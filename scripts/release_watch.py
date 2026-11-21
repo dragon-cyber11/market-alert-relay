@@ -78,9 +78,9 @@ def bls_ua():
     if not _bls_notice_shown:
         _bls_notice_shown = True
         if ok:
-            # 로그에 주소 전체를 남기지 않는다. Actions 로그는 공개 저장소에서 볼 수 있음
-            user, _, domain = email.partition("@")
-            print("[지표감시] CPI/고용 감시 켜짐 (연락처 %s***@%s)" % (user[:2], domain))
+            # 연락처는 일부라도 로그에 남기지 않는다. 공개 저장소라 Actions 로그를
+            # 누구나 볼 수 있다(전에는 앞 두 글자와 도메인을 찍었음).
+            print("[지표감시] CPI/고용 감시 켜짐 (연락처 설정됨)")
         else:
             print("[지표감시] CONTACT_EMAIL 이 없어 CPI/고용 감시 꺼짐 "
                   "(PCE/FOMC 는 정상 동작). 저장소 Secret 에 CONTACT_EMAIL 을 넣으면 켜짐")
